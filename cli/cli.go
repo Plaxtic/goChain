@@ -181,7 +181,6 @@ func (cli *CommandLine) Run() {
 
 func HandleAddress(address string) {
 	if !wallet.ValidateAddress(address) {
-		fmt.Println("cunt")
 		log.Panic("Invalid address")
 	}
 }

@@ -1,0 +1,127 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/funk/github/goChain/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	/p5.9.20210905.0/
+AddBlock	blockchain/blockchain.go	/^func (chain *BlockChain) AddBlock(txs []*Tx) {$/;"	f	struct:blockchain.BlockChain
+AddWallet	wallet/persist.go	/^func (ws *Wallets) AddWallet() string {$/;"	f	struct:wallet.Wallets	typeref:typename:string
+Base58Decode	wallet/utils.go	/^func Base58Decode(input []byte) []byte {$/;"	f	package:wallet	typeref:typename:[]byte
+Base58Encode	wallet/utils.go	/^func Base58Encode(input []byte) []byte {$/;"	f	package:wallet	typeref:typename:[]byte
+Block	blockchain/block.go	/^type Block struct {$/;"	s	package:blockchain
+Block	blockchain/pow.go	/^	Block  *Block$/;"	m	struct:blockchain.ProofOfWork	typeref:typename:*Block
+Block2Bytes	blockchain/block.go	/^func (b *Block) Block2Bytes() []byte {$/;"	f	struct:blockchain.Block	typeref:typename:[]byte
+BlockChain	blockchain/blockchain.go	/^type BlockChain struct {$/;"	s	package:blockchain
+BlockChainIterator	blockchain/blockchain.go	/^type BlockChainIterator struct {$/;"	s	package:blockchain
+Bytes2Block	blockchain/block.go	/^func Bytes2Block(data []byte) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
+Checksum	wallet/wallet.go	/^func Checksum(input []byte) []byte {$/;"	f	package:wallet	typeref:typename:[]byte
+CoinbaseTx	blockchain/transaction.go	/^func CoinbaseTx(to, data string) *Tx {$/;"	f	package:blockchain	typeref:typename:*Tx
+CommandLine	cli/cli.go	/^type CommandLine struct{}$/;"	s	package:cli
+ContinueBlockChain	blockchain/blockchain.go	/^func ContinueBlockChain(address string) *BlockChain {$/;"	f	package:blockchain	typeref:typename:*BlockChain
+CreateBlock	blockchain/block.go	/^func CreateBlock(txs []*Tx, prevHash []byte) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
+CreateWallets	wallet/persist.go	/^func CreateWallets() (*Wallets, error) {$/;"	f	package:wallet	typeref:typename:(*Wallets, error)
+CurrHash	blockchain/blockchain.go	/^	CurrHash []byte$/;"	m	struct:blockchain.BlockChainIterator	typeref:typename:[]byte
+DBexists	blockchain/blockchain.go	/^func DBexists() bool {$/;"	f	package:blockchain	typeref:typename:bool
+Database	blockchain/blockchain.go	/^	Database *badger.DB$/;"	m	struct:blockchain.BlockChain	typeref:typename:*badger.DB
+Database	blockchain/blockchain.go	/^	Database *badger.DB$/;"	m	struct:blockchain.BlockChainIterator	typeref:typename:*badger.DB
+Difficulty	blockchain/pow.go	/^const Difficulty = 18$/;"	c	package:blockchain
+FindSpendableOutputs	blockchain/blockchain.go	/^func (chain *BlockChain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]/;"	f	struct:blockchain.BlockChain	typeref:typename:(int, map[string][]int)
+FindTx	blockchain/blockchain.go	/^func (chain *BlockChain) FindTx(ID []byte) (Tx, error) {$/;"	f	struct:blockchain.BlockChain	typeref:typename:(Tx, error)
+FindUTXO	blockchain/blockchain.go	/^func (chain *BlockChain) FindUTXO(pubKeyHash []byte) []TxOut {$/;"	f	struct:blockchain.BlockChain	typeref:typename:[]TxOut
+FindUnspentTxs	blockchain/blockchain.go	/^func (chain *BlockChain) FindUnspentTxs(pubKeyHash []byte) []Tx {$/;"	f	struct:blockchain.BlockChain	typeref:typename:[]Tx
+Genesis	blockchain/block.go	/^func Genesis(coinbase *Tx) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
+GetAddress	wallet/wallet.go	/^func (w Wallet) GetAddress() []byte {$/;"	f	struct:wallet.Wallet	typeref:typename:[]byte
+GetAllAddresses	wallet/persist.go	/^func (ws *Wallets) GetAllAddresses() []string {$/;"	f	struct:wallet.Wallets	typeref:typename:[]string
+GetWallet	wallet/persist.go	/^func (ws *Wallets) GetWallet(address string) Wallet {$/;"	f	struct:wallet.Wallets	typeref:typename:Wallet
+Handle	blockchain/block.go	/^func Handle(err error) {$/;"	f	package:blockchain
+Handle	wallet/utils.go	/^func Handle(err error) {$/;"	f	package:wallet
+HandleAddress	cli/cli.go	/^func HandleAddress(address string) {$/;"	f	package:cli
+Hash	blockchain/block.go	/^	Hash     []byte$/;"	m	struct:blockchain.Block	typeref:typename:[]byte
+Hash	blockchain/transaction.go	/^func (tx *Tx) Hash() []byte {$/;"	f	struct:blockchain.Tx	typeref:typename:[]byte
+HashTxs	blockchain/block.go	/^func (block *Block) HashTxs() []byte {$/;"	f	struct:blockchain.Block	typeref:typename:[]byte
+ID	blockchain/transaction.go	/^	ID      []byte$/;"	m	struct:blockchain.Tx	typeref:typename:[]byte
+ID	blockchain/tx.go	/^	ID     []byte$/;"	m	struct:blockchain.TxIn	typeref:typename:[]byte
+InitBlockChain	blockchain/blockchain.go	/^func InitBlockChain(address string) *BlockChain {$/;"	f	package:blockchain	typeref:typename:*BlockChain
+InitData	blockchain/pow.go	/^func (pow *ProofOfWork) InitData(nonce int) []byte {$/;"	f	struct:blockchain.ProofOfWork	typeref:typename:[]byte
+Inputs	blockchain/transaction.go	/^	Inputs  []TxIn$/;"	m	struct:blockchain.Tx	typeref:typename:[]TxIn
+IsCoinbase	blockchain/transaction.go	/^func (tx *Tx) IsCoinbase() bool {$/;"	f	struct:blockchain.Tx	typeref:typename:bool
+IsLockedWithKey	blockchain/tx.go	/^func (out *TxOut) IsLockedWithKey(pubKeyHash []byte) bool {$/;"	f	struct:blockchain.TxOut	typeref:typename:bool
+Iterator	blockchain/blockchain.go	/^func (chain *BlockChain) Iterator() *BlockChainIterator {$/;"	f	struct:blockchain.BlockChain	typeref:typename:*BlockChainIterator
+LastHash	blockchain/blockchain.go	/^	LastHash []byte$/;"	m	struct:blockchain.BlockChain	typeref:typename:[]byte
+LoadFile	wallet/persist.go	/^func (ws *Wallets) LoadFile() error {$/;"	f	struct:wallet.Wallets	typeref:typename:error
+Lock	blockchain/tx.go	/^func (out *TxOut) Lock(address []byte) {$/;"	f	struct:blockchain.TxOut
+MakeWallet	wallet/wallet.go	/^func MakeWallet() *Wallet {$/;"	f	package:wallet	typeref:typename:*Wallet
+NewKeyPair	wallet/wallet.go	/^func NewKeyPair() (ecdsa.PrivateKey, []byte) {$/;"	f	package:wallet	typeref:typename:(ecdsa.PrivateKey, []byte)
+NewProof	blockchain/pow.go	/^func NewProof(b *Block) *ProofOfWork {$/;"	f	package:blockchain	typeref:typename:*ProofOfWork
+NewTx	blockchain/transaction.go	/^func NewTx(from, to string, amount int, chain *BlockChain) *Tx {$/;"	f	package:blockchain	typeref:typename:*Tx
+NewTxOut	blockchain/tx.go	/^func NewTxOut(value int, address string) *TxOut {$/;"	f	package:blockchain	typeref:typename:*TxOut
+Next	blockchain/blockchain.go	/^func (iter *BlockChainIterator) Next() (*Block, error) {$/;"	f	struct:blockchain.BlockChainIterator	typeref:typename:(*Block, error)
+Nonce	blockchain/block.go	/^	Nonce    int$/;"	m	struct:blockchain.Block	typeref:typename:int
+Out	blockchain/tx.go	/^	Out    int$/;"	m	struct:blockchain.TxIn	typeref:typename:int
+Outputs	blockchain/transaction.go	/^	Outputs []TxOut$/;"	m	struct:blockchain.Tx	typeref:typename:[]TxOut
+PrevHash	blockchain/block.go	/^	PrevHash []byte$/;"	m	struct:blockchain.Block	typeref:typename:[]byte
+PrintBlock	blockchain/block.go	/^func (block *Block) PrintBlock() {$/;"	f	struct:blockchain.Block
+PrintBlockChain	blockchain/blockchain.go	/^func (chain *BlockChain) PrintBlockChain() {$/;"	f	struct:blockchain.BlockChain
+PrintTx	blockchain/transaction.go	/^func (tx *Tx) PrintTx() {$/;"	f	struct:blockchain.Tx
+PrivateKey	wallet/wallet.go	/^	PrivateKey ecdsa.PrivateKey$/;"	m	struct:wallet.Wallet	typeref:typename:ecdsa.PrivateKey
+ProofOfWork	blockchain/pow.go	/^type ProofOfWork struct {$/;"	s	package:blockchain
+PubKey	blockchain/tx.go	/^	PubKey []byte$/;"	m	struct:blockchain.TxIn	typeref:typename:[]byte
+PublicKey	wallet/wallet.go	/^	PublicKey  []byte$/;"	m	struct:wallet.Wallet	typeref:typename:[]byte
+PublicKeyHash	blockchain/tx.go	/^	PublicKeyHash []byte$/;"	m	struct:blockchain.TxOut	typeref:typename:[]byte
+PublicKeyHash	wallet/wallet.go	/^func PublicKeyHash(pubKey []byte) []byte {$/;"	f	package:wallet	typeref:typename:[]byte
+Run	blockchain/pow.go	/^func (pow *ProofOfWork) Run() (int, []byte) {$/;"	f	struct:blockchain.ProofOfWork	typeref:typename:(int, []byte)
+Run	cli/cli.go	/^func (cli *CommandLine) Run() {$/;"	f	struct:cli.CommandLine
+SaveFile	wallet/persist.go	/^func (ws *Wallets) SaveFile() {$/;"	f	struct:wallet.Wallets
+SetID	blockchain/transaction.go	/^func (tx *Tx) SetID() {$/;"	f	struct:blockchain.Tx
+Sig	blockchain/tx.go	/^	Sig    []byte$/;"	m	struct:blockchain.TxIn	typeref:typename:[]byte
+Sign	blockchain/transaction.go	/^func (tx *Tx) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Tx) {$/;"	f	struct:blockchain.Tx
+SignTx	blockchain/blockchain.go	/^func (chain *BlockChain) SignTx(tx *Tx, privKey ecdsa.PrivateKey) {$/;"	f	struct:blockchain.BlockChain
+Target	blockchain/pow.go	/^	Target *big.Int$/;"	m	struct:blockchain.ProofOfWork	typeref:typename:*big.Int
+ToBytes	blockchain/pow.go	/^func ToBytes(num int64) []byte {$/;"	f	package:blockchain	typeref:typename:[]byte
+TrimmedCopy	blockchain/transaction.go	/^func (tx *Tx) TrimmedCopy() Tx {$/;"	f	struct:blockchain.Tx	typeref:typename:Tx
+Tx	blockchain/transaction.go	/^type Tx struct {$/;"	s	package:blockchain
+Tx2Bytes	blockchain/transaction.go	/^func (tx *Tx) Tx2Bytes() []byte {$/;"	f	struct:blockchain.Tx	typeref:typename:[]byte
+TxIn	blockchain/tx.go	/^type TxIn struct {$/;"	s	package:blockchain
+TxOut	blockchain/tx.go	/^type TxOut struct {$/;"	s	package:blockchain
+Txs	blockchain/block.go	/^	Txs      []*Tx$/;"	m	struct:blockchain.Block	typeref:typename:[]*Tx
+UsesKey	blockchain/tx.go	/^func (in *TxIn) UsesKey(pubKeyHash []byte) bool {$/;"	f	struct:blockchain.TxIn	typeref:typename:bool
+Validate	blockchain/pow.go	/^func (pow *ProofOfWork) Validate() bool {$/;"	f	struct:blockchain.ProofOfWork	typeref:typename:bool
+ValidateAddress	wallet/wallet.go	/^func ValidateAddress(address string) bool {$/;"	f	package:wallet	typeref:typename:bool
+Value	blockchain/tx.go	/^	Value         int$/;"	m	struct:blockchain.TxOut	typeref:typename:int
+Verify	blockchain/transaction.go	/^func (tx *Tx) Verify(prevTXs map[string]Tx) bool {$/;"	f	struct:blockchain.Tx	typeref:typename:bool
+VerifyTx	blockchain/blockchain.go	/^func (chain *BlockChain) VerifyTx(tx *Tx) bool {$/;"	f	struct:blockchain.BlockChain	typeref:typename:bool
+Wallet	wallet/wallet.go	/^type Wallet struct {$/;"	s	package:wallet
+Wallets	wallet/persist.go	/^	Wallets map[string]*Wallet$/;"	m	struct:wallet.Wallets	typeref:typename:map[string]*Wallet
+Wallets	wallet/persist.go	/^type Wallets struct {$/;"	s	package:wallet
+blockchain	blockchain/block.go	/^package blockchain$/;"	p
+blockchain	blockchain/blockchain.go	/^package blockchain$/;"	p
+blockchain	blockchain/pow.go	/^package blockchain$/;"	p
+blockchain	blockchain/transaction.go	/^package blockchain$/;"	p
+blockchain	blockchain/tx.go	/^package blockchain$/;"	p
+checksumLen	wallet/wallet.go	/^	checksumLen = 4$/;"	c	package:wallet
+cli	cli/cli.go	/^package cli$/;"	p
+createBlockChain	cli/cli.go	/^func (cli *CommandLine) createBlockChain(address string) {$/;"	f	struct:cli.CommandLine
+createWallet	cli/cli.go	/^func (cli *CommandLine) createWallet() {$/;"	f	struct:cli.CommandLine
+dbFile	blockchain/blockchain.go	/^	dbFile      = ".\/tmp\/blocks\/MANIFEST"$/;"	c	package:blockchain
+dbPath	blockchain/blockchain.go	/^	dbPath      = ".\/tmp\/blocks"$/;"	c	package:blockchain
+genesisData	blockchain/blockchain.go	/^	genesisData = "GENESIS"$/;"	c	package:blockchain
+getBalance	cli/cli.go	/^func (cli *CommandLine) getBalance(address string) {$/;"	f	struct:cli.CommandLine
+goChain	README.md	/^# goChain$/;"	c
+listAddresses	cli/cli.go	/^func (cli *CommandLine) listAddresses() {$/;"	f	struct:cli.CommandLine
+log	blockchain/pow.go	/^	log "github.com\/llimllib\/loglevel"$/;"	P	package:github.com/llimllib/loglevel
+main	main.go	/^func main() {$/;"	f	package:main
+main	main.go	/^package main$/;"	p
+printChain	cli/cli.go	/^func (cli *CommandLine) printChain() {$/;"	f	struct:cli.CommandLine
+printUsage	cli/cli.go	/^func (cli *CommandLine) printUsage() {$/;"	f	struct:cli.CommandLine
+send	cli/cli.go	/^func (cli *CommandLine) send(from, to string, amount int) {$/;"	f	struct:cli.CommandLine
+validateArgs	cli/cli.go	/^func (cli *CommandLine) validateArgs() {$/;"	f	struct:cli.CommandLine
+version	wallet/wallet.go	/^	version     = byte(0x00)$/;"	c	package:wallet
+wallet	wallet/persist.go	/^package wallet$/;"	p
+wallet	wallet/utils.go	/^package wallet$/;"	p
+wallet	wallet/wallet.go	/^package wallet$/;"	p
+walletPath	wallet/persist.go	/^const walletPath = ".\/tmp\/wallets.data"$/;"	c	package:wallet

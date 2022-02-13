@@ -79,12 +79,9 @@ func (w Wallet) GetAddress() []byte {
 }
 func ValidateAddress(address string) bool {
 	pubKeyHash := Base58Decode([]byte(address))
-	fmt.Printf("asdf: %x\n", pubKeyHash)
 	actualChecksum := pubKeyHash[len(pubKeyHash)-checksumLen+1:]
-	fmt.Printf("asdsdkjfnf: %x\n", actualChecksum)
 	version := pubKeyHash[0]
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checksumLen+1]
-	fmt.Println("1234")
 	targetChecksum := Checksum(append([]byte{version}, pubKeyHash...))
 
 	return bytes.Compare(actualChecksum, targetChecksum) == 0
