@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -19,15 +18,16 @@ type Block struct {
 
 func (block *Block) HashTxs() []byte {
 	var txHashes [][]byte
-	var txHash [32]byte
 
 	// extract transactions
 	for _, tx := range block.Txs {
-		txHashes = append(txHashes, tx.ID)
+		txHashes = append(txHashes, tx.ToBytes())
 	}
-	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{})) // hash transactions concatenated as bytes
 
-	return txHash[:]
+	// create merkle tree
+	tree := NewMerkleTree(txHashes)
+
+	return tree.RootNode.Data
 }
 
 // mint block using proof of work

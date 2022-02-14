@@ -25,7 +25,8 @@ func CreateWallets() (*Wallets, error) {
 }
 
 func (ws *Wallets) GetWallet(address string) Wallet {
-	return *ws.Wallets[address]
+	w := *ws.Wallets[address]
+	return w
 }
 
 func (ws *Wallets) GetAllAddresses() []string {

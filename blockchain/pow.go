@@ -11,7 +11,7 @@ import (
 	log "github.com/llimllib/loglevel"
 )
 
-const Difficulty = 18
+const Difficulty = 12
 
 type ProofOfWork struct {
 	Block  *Block

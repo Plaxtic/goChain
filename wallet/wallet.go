@@ -71,17 +71,17 @@ func (w Wallet) GetAddress() []byte {
 	// finaly, encode in base58 to get address
 	address := Base58Encode(fullHash)
 
-	fmt.Printf("Public Key  : %x\n", w.PublicKey)
-	fmt.Printf("Public Hash : %x\n", pubHash)
-	fmt.Printf("Address     : %x\n", address)
+	fmt.Printf("Public Key     : %x\n", w.PublicKey)
+	fmt.Printf("Public Hash    : %x\n", pubHash)
+	fmt.Printf("Address        : %x\n", address)
 
 	return address
 }
 func ValidateAddress(address string) bool {
 	pubKeyHash := Base58Decode([]byte(address))
-	actualChecksum := pubKeyHash[len(pubKeyHash)-checksumLen+1:]
+	actualChecksum := pubKeyHash[len(pubKeyHash)-checksumLen:]
 	version := pubKeyHash[0]
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checksumLen+1]
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checksumLen]
 	targetChecksum := Checksum(append([]byte{version}, pubKeyHash...))
 
 	return bytes.Compare(actualChecksum, targetChecksum) == 0

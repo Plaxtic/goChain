@@ -20,7 +20,7 @@ type Tx struct {
 	Outputs []TxOut
 }
 
-func (tx *Tx) Tx2Bytes() []byte {
+func (tx *Tx) ToBytes() []byte {
 	var encoded bytes.Buffer
 
 	enc := gob.NewEncoder(&encoded)
@@ -35,7 +35,7 @@ func (tx *Tx) Hash() []byte {
 	txCopy := *tx
 	txCopy.ID = []byte{}
 
-	hash = sha256.Sum256(txCopy.Tx2Bytes())
+	hash = sha256.Sum256(txCopy.ToBytes())
 
 	return hash[:]
 }
@@ -126,31 +126,24 @@ func (tx *Tx) Verify(prevTXs map[string]Tx) bool {
 
 func CoinbaseTx(to, data string) *Tx {
 	if data == "" {
-		data = fmt.Sprintf("Coins to %s", to)
+		randData := make([]byte, 24)
+		_, err := rand.Read(randData)
+		if err != nil {
+			log.Panic(err)
+		}
+		data = fmt.Sprintf("%x", randData)
 	}
 
 	txin := TxIn{[]byte{}, 01, nil, []byte(data)}
-	txout := NewTxOut(100, to) // 100 coin block minting reward
+	txout := NewTxOut(10, to) // 10 coin block minting reward
 
 	tx := Tx{nil, []TxIn{txin}, []TxOut{*txout}}
-	tx.SetID()
+	tx.ID = tx.Hash()
 
 	return &tx
 }
 
-func (tx *Tx) SetID() {
-	var encoded bytes.Buffer
-	var hash [32]byte
-
-	encode := gob.NewEncoder(&encoded)
-	err := encode.Encode(tx)
-	Handle(err)
-
-	hash = sha256.Sum256(encoded.Bytes())
-	tx.ID = hash[:]
-}
-
-func NewTx(from, to string, amount int, chain *BlockChain) *Tx {
+func NewTx(from, to string, amount int, UTXO *UTXOSet) *Tx {
 	var inputs []TxIn
 	var outputs []TxOut
 
@@ -160,7 +153,7 @@ func NewTx(from, to string, amount int, chain *BlockChain) *Tx {
 	w := wallets.GetWallet(from)
 	pubKeyHash := wallet.PublicKeyHash(w.PublicKey)
 
-	acc, validOutputs := chain.FindSpendableOutputs(pubKeyHash, amount)
+	acc, validOutputs := UTXO.FindSpendableOutputs(pubKeyHash, amount)
 	if acc < amount {
 		log.Panic("Error: insufficient funds")
 	}
@@ -178,12 +171,12 @@ func NewTx(from, to string, amount int, chain *BlockChain) *Tx {
 
 	// if balance is not zero we need to create a transaction to ourself
 	if acc > amount {
-		outputs = append(outputs, *NewTxOut(amount-amount, to))
+		outputs = append(outputs, *NewTxOut(acc-amount, to))
 	}
 
 	tx := Tx{nil, inputs, outputs}
 	tx.Hash()
-	chain.SignTx(&tx, w.PrivateKey)
+	UTXO.BlockChain.SignTx(&tx, w.PrivateKey)
 
 	return &tx
 }

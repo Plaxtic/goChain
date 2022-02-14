@@ -29,7 +29,7 @@ type BlockChainIterator struct {
 }
 
 // add block to chain
-func (chain *BlockChain) AddBlock(txs []*Tx) {
+func (chain *BlockChain) AddBlock(txs []*Tx) *Block {
 	var lastHash []byte
 
 	err := chain.Database.View(func(txn *badger.Txn) error {
@@ -53,6 +53,8 @@ func (chain *BlockChain) AddBlock(txs []*Tx) {
 		return err
 	})
 	Handle(err)
+
+	return newBlock
 }
 
 func DBexists() bool {
@@ -169,41 +171,39 @@ func (chain *BlockChain) FindUnspentTxs(pubKeyHash []byte) []Tx {
 	return unspentTxs
 }
 
-func (chain *BlockChain) FindUTXO(pubKeyHash []byte) []TxOut {
-	var UTXOs []TxOut
-	unspentTxs := chain.FindUnspentTxs(pubKeyHash)
+func (chain *BlockChain) FindUTXO() map[string]TxOutputs {
+	UTXO := make(map[string]TxOutputs)
+	spentTXOs := make(map[string][]int)
 
-	for _, tx := range unspentTxs {
-		for _, out := range tx.Outputs {
-			if out.IsLockedWithKey(pubKeyHash) {
-				UTXOs = append(UTXOs, out)
+	iter := chain.Iterator()
+
+	for blk, err := iter.Next(); err == nil; blk, err = iter.Next() {
+
+		for _, tx := range blk.Txs {
+			txID := hex.EncodeToString(tx.ID)
+
+		Outputs:
+			for outIdx, out := range tx.Outputs {
+				if spentTXOs[txID] != nil {
+					for _, spentOut := range spentTXOs[txID] {
+						if spentOut == outIdx {
+							continue Outputs
+						}
+					}
+				}
+				outs := UTXO[txID]
+				outs.Outputs = append(outs.Outputs, out)
+				UTXO[txID] = outs
 			}
-		}
-	}
-	return UTXOs
-}
-
-func (chain *BlockChain) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
-	unspentOuts := make(map[string][]int)
-	unspentTxs := chain.FindUnspentTxs(pubKeyHash)
-	accumulated := 0
-
-Work:
-	for _, tx := range unspentTxs {
-		txID := hex.EncodeToString(tx.ID)
-
-		for outIdx, out := range tx.Outputs {
-			if out.IsLockedWithKey(pubKeyHash) && accumulated < amount {
-				accumulated += out.Value
-				unspentOuts[txID] = append(unspentOuts[txID], outIdx)
-
-				if accumulated >= amount {
-					break Work
+			if tx.IsCoinbase() == false {
+				for _, in := range tx.Inputs {
+					inTxID := hex.EncodeToString(in.ID)
+					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Out)
 				}
 			}
 		}
 	}
-	return accumulated, unspentOuts
+	return UTXO
 }
 
 func (chain *BlockChain) Iterator() *BlockChainIterator {
@@ -238,6 +238,10 @@ func (chain *BlockChain) SignTx(tx *Tx, privKey ecdsa.PrivateKey) {
 }
 
 func (chain *BlockChain) VerifyTx(tx *Tx) bool {
+	if tx.IsCoinbase() {
+		return true
+	}
+
 	prevTXs := make(map[string]Tx)
 
 	for _, input := range tx.Inputs {
