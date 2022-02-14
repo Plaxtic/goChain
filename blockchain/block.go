@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 )
 
 // (very) minimal block
 type Block struct {
-	Hash     []byte
-	Txs      []*Tx
-	PrevHash []byte
-	Nonce    int
+	Timestamp int64
+	Hash      []byte
+	Txs       []*Tx
+	PrevHash  []byte
+	Nonce     int
+	Height    int
 }
 
 func (block *Block) HashTxs() []byte {
@@ -31,8 +34,15 @@ func (block *Block) HashTxs() []byte {
 }
 
 // mint block using proof of work
-func CreateBlock(txs []*Tx, prevHash []byte) *Block {
-	block := &Block{[]byte{}, txs, prevHash, 0}
+func CreateBlock(txs []*Tx, prevHash []byte, height int) *Block {
+	block := &Block{
+		Timestamp: time.Now().Unix(),
+		Hash:      []byte{},
+		Txs:       txs,
+		PrevHash:  prevHash,
+		Nonce:     0,
+		Height:    height,
+	}
 	pow := NewProof(block)
 	nonce, hash := pow.Run()
 
@@ -44,7 +54,7 @@ func CreateBlock(txs []*Tx, prevHash []byte) *Block {
 
 // first block in a chain
 func Genesis(coinbase *Tx) *Block {
-	return CreateBlock([]*Tx{coinbase}, []byte{})
+	return CreateBlock([]*Tx{coinbase}, []byte{}, 0)
 }
 
 // dump single block
@@ -62,7 +72,7 @@ func (block *Block) PrintBlock() {
 	fmt.Printf("ValidBlock : %s\n", strconv.FormatBool(pow.Validate()))
 }
 
-func (b *Block) Block2Bytes() []byte {
+func (b *Block) ToBytes() []byte {
 	var ret bytes.Buffer
 	encoder := gob.NewEncoder(&ret)
 

@@ -54,7 +54,7 @@ func Checksum(input []byte) []byte {
 	return secondHash[:checksumLen]
 }
 
-func (w Wallet) GetAddress() []byte {
+func (w *Wallet) GetAddress() []byte {
 
 	// hash public key (twice)
 	pubHash := PublicKeyHash(w.PublicKey)
