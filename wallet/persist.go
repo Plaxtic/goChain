@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -25,8 +26,11 @@ func CreateWallets(nodeID string) (*Wallets, error) {
 }
 
 func (ws *Wallets) GetWallet(address string) Wallet {
-	w := *ws.Wallets[address]
-	return w
+	w, ok := ws.Wallets[address]
+	if !ok {
+		log.Panicf("KeyError: %s\n", address)
+	}
+	return *w
 }
 
 func (ws *Wallets) GetAllAddresses() []string {

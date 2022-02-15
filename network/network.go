@@ -189,8 +189,8 @@ func SendData(addr string, data []byte) {
 	conn, err := net.Dial(protocol, addr)
 
 	if err != nil {
-		fmt.Printf("%s is unavalible\n", addr)
 		var updatedNodes []string
+		fmt.Printf("%s is unavailable\n", addr)
 
 		for _, node := range KnownNodes {
 			if node != addr {
@@ -289,7 +289,7 @@ func HandleVersion(request []byte, chain *blockchain.BlockChain) {
 
 	buff.Write(request[:commandLen])
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	dec.Decode(&payload)
 
 	bestHeight := chain.GetBestHeight()
 	otherHeight := payload.BestHeight
@@ -377,18 +377,25 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 
 	switch cmd {
 	case "addr":
+		fmt.Println("addr")
 		HandleAddr(req)
 	case "block":
+		fmt.Println("block")
 		HandleBlock(req, chain)
 	case "inv":
+		fmt.Println("inv")
 		HandleInv(req, chain)
 	case "getblocks":
+		fmt.Println("gblk")
 		HandleGetBlocks(req, chain)
 	case "getdata":
+		fmt.Println("gdat")
 		HandleGetData(req, chain)
 	case "tx":
+		fmt.Println("tx")
 		HandleTx(req, chain)
 	case "version":
+		fmt.Println("vrs")
 		HandleVersion(req, chain)
 	default:
 		fmt.Println("Unknown command")
@@ -399,7 +406,7 @@ func StartP2PServer(nodeID, minerAddress string) {
 	nodeAddr := fmt.Sprintf("localhost:%s", nodeID)
 	mineAddress = minerAddress
 
-	ln, err := net.Listen(protocol, nodeAddress)
+	ln, err := net.Listen(protocol, nodeAddr)
 	Handle(err)
 	defer ln.Close()
 
@@ -413,6 +420,7 @@ func StartP2PServer(nodeID, minerAddress string) {
 
 	// main server loop
 	for {
+		fmt.Printf("Waiting for connections at %s\n", nodeAddr)
 		conn, err := ln.Accept()
 		Handle(err)
 

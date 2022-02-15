@@ -157,9 +157,10 @@ func InitBlockChain(address, nodeID string) *BlockChain {
 		runtime.Goexit()
 	}
 
-	opts := badger.DefaultOptions(dbPath)
-	opts.Dir = dbPath
-	opts.ValueDir = dbPath
+	path := fmt.Sprintf(dbPath, nodeID)
+	opts := badger.DefaultOptions(path)
+	opts.Dir = path
+	opts.ValueDir = path
 
 	db, err := badger.Open(opts)
 	Handle(err)
@@ -191,9 +192,9 @@ func ContinueBlockChain(nodeID string) *BlockChain {
 
 	var lastHash []byte
 
-	opts := badger.DefaultOptions(dbPath)
-	opts.Dir = dbPath
-	opts.ValueDir = dbPath
+	opts := badger.DefaultOptions(path)
+	opts.Dir = path
+	opts.ValueDir = path
 
 	db, err := openDB(path, opts)
 	Handle(err)
