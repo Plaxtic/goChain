@@ -31,7 +31,7 @@ BlockChain	blockchain/utxs.go	/^	BlockChain *BlockChain$/;"	m	struct:blockchain.
 BlockChainIterator	blockchain/chain_iter.go	/^type BlockChainIterator struct {$/;"	s	package:blockchain
 Bytes2Block	blockchain/block.go	/^func Bytes2Block(data []byte) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
 Bytes2Cmd	network/network.go	/^func Bytes2Cmd(bytes []byte) string {$/;"	f	package:network	typeref:typename:string
-Bytes2Tx	blockchain/blockchain.go	/^func Bytes2Tx(data []byte) Tx {$/;"	f	package:blockchain	typeref:typename:Tx
+Bytes2Tx	blockchain/transaction.go	/^func Bytes2Tx(data []byte) Tx {$/;"	f	package:blockchain	typeref:typename:Tx
 Bytes2Txoutputs	blockchain/txs.go	/^func Bytes2Txoutputs(data []byte) TxOutputs {$/;"	f	package:blockchain	typeref:typename:TxOutputs
 Checksum	wallet/wallet.go	/^func Checksum(input []byte) []byte {$/;"	f	package:wallet	typeref:typename:[]byte
 CloseDB	network/network.go	/^func CloseDB(chain *blockchain.BlockChain) {$/;"	f	package:network
@@ -45,8 +45,8 @@ CreateWallets	wallet/persist.go	/^func CreateWallets(nodeID string) (*Wallets, e
 CurrHash	blockchain/chain_iter.go	/^	CurrHash []byte$/;"	m	struct:blockchain.BlockChainIterator	typeref:typename:[]byte
 DBexists	blockchain/blockchain.go	/^func DBexists(path string) bool {$/;"	f	package:blockchain	typeref:typename:bool
 Data	blockchain/merkel.go	/^	Data  []byte$/;"	m	struct:blockchain.MerkleNode	typeref:typename:[]byte
-Database	blockchain/blockchain.go	/^	Database *badger.DB$/;"	m	struct:blockchain.BlockChain	typeref:typename:*badger.DB
-Database	blockchain/chain_iter.go	/^	Database *badger.DB$/;"	m	struct:blockchain.BlockChainIterator	typeref:typename:*badger.DB
+Database	blockchain/blockchain.go	/^	Database *leveldb.DB$/;"	m	struct:blockchain.BlockChain	typeref:typename:*leveldb.DB
+Database	blockchain/chain_iter.go	/^	Database *leveldb.DB$/;"	m	struct:blockchain.BlockChainIterator	typeref:typename:*leveldb.DB
 DeleteByPrefix	blockchain/utxs.go	/^func (u *UTXOSet) DeleteByPrefix(prefix []byte) {$/;"	f	struct:blockchain.UTXOSet
 Difficulty	blockchain/pow.go	/^const Difficulty = 12$/;"	c	package:blockchain
 FindSpendableOutputs	blockchain/utxs.go	/^func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {$/;"	f	struct:blockchain.UTXOSet	typeref:typename:(int, map[string][]int)
@@ -58,19 +58,20 @@ Genesis	blockchain/block.go	/^func Genesis(coinbase *Tx) *Block {$/;"	f	package:
 GetAddress	wallet/wallet.go	/^func (w *Wallet) GetAddress() []byte {$/;"	f	struct:wallet.Wallet	typeref:typename:[]byte
 GetAllAddresses	wallet/persist.go	/^func (ws *Wallets) GetAllAddresses() []string {$/;"	f	struct:wallet.Wallets	typeref:typename:[]string
 GetBestHeight	blockchain/blockchain.go	/^func (chain *BlockChain) GetBestHeight() int {$/;"	f	struct:blockchain.BlockChain	typeref:typename:int
-GetBlock	blockchain/blockchain.go	/^func (chain *BlockChain) GetBlock(blockHash []byte) (Block, error) {$/;"	f	struct:blockchain.BlockChain	typeref:typename:(Block, error)
+GetBlockByHash	blockchain/blockchain.go	/^func (chain *BlockChain) GetBlockByHash(blockHash []byte) (Block, error) {$/;"	f	struct:blockchain.BlockChain	typeref:typename:(Block, error)
 GetBlocks	network/network.go	/^type GetBlocks struct {$/;"	s	package:network
 GetData	network/network.go	/^type GetData struct {$/;"	s	package:network
 GetHashes	blockchain/blockchain.go	/^func (chain *BlockChain) GetHashes() [][]byte {$/;"	f	struct:blockchain.BlockChain	typeref:typename:[][]byte
+GetLastBlock	blockchain/blockchain.go	/^func (chain *BlockChain) GetLastBlock() Block {$/;"	f	struct:blockchain.BlockChain	typeref:typename:Block
 GetWallet	wallet/persist.go	/^func (ws *Wallets) GetWallet(address string) Wallet {$/;"	f	struct:wallet.Wallets	typeref:typename:Wallet
 GobEncode	network/network.go	/^func GobEncode(data interface{}) []byte {$/;"	f	package:network	typeref:typename:[]byte
-Handle	blockchain/block.go	/^func Handle(err error) {$/;"	f	package:blockchain
 Handle	cli/cli.go	/^func Handle(err error) {$/;"	f	package:cli
 Handle	network/network.go	/^func Handle(err error) {$/;"	f	package:network
 Handle	wallet/utils.go	/^func Handle(err error) {$/;"	f	package:wallet
 HandleAddr	network/network.go	/^func HandleAddr(request []byte) {$/;"	f	package:network
 HandleBlock	network/network.go	/^func HandleBlock(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
 HandleConnection	network/network.go	/^func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {$/;"	f	package:network
+HandleErr	blockchain/block.go	/^func HandleErr(err error) {$/;"	f	package:blockchain
 HandleGetBlocks	network/network.go	/^func HandleGetBlocks(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
 HandleGetData	network/network.go	/^func HandleGetData(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
 HandleInv	network/network.go	/^func HandleInv(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
@@ -80,7 +81,6 @@ Hash	blockchain/block.go	/^	Hash      []byte$/;"	m	struct:blockchain.Block	typer
 Hash	blockchain/transaction.go	/^func (tx *Tx) Hash() []byte {$/;"	f	struct:blockchain.Tx	typeref:typename:[]byte
 HashTxs	blockchain/block.go	/^func (block *Block) HashTxs() []byte {$/;"	f	struct:blockchain.Block	typeref:typename:[]byte
 Height	blockchain/block.go	/^	Height    int$/;"	m	struct:blockchain.Block	typeref:typename:int
-HexDump	network/network.go	/^func HexDump(bytes []byte) {$/;"	f	package:network
 ID	blockchain/transaction.go	/^	ID      []byte$/;"	m	struct:blockchain.Tx	typeref:typename:[]byte
 ID	blockchain/txs.go	/^	ID     []byte$/;"	m	struct:blockchain.TxIn	typeref:typename:[]byte
 ID	network/network.go	/^	ID       []byte$/;"	m	struct:network.GetData	typeref:typename:[]byte
@@ -131,6 +131,7 @@ RootNode	blockchain/merkel.go	/^	RootNode *MerkleNode$/;"	m	struct:blockchain.Me
 Run	blockchain/pow.go	/^func (pow *ProofOfWork) Run() (int, []byte) {$/;"	f	struct:blockchain.ProofOfWork	typeref:typename:(int, []byte)
 Run	cli/cli.go	/^func (cli *CommandLine) Run() {$/;"	f	struct:cli.CommandLine
 SaveFile	wallet/persist.go	/^func (ws *Wallets) SaveFile(nodeID string) {$/;"	f	struct:wallet.Wallets
+SelectChain	blockchain/blockchain.go	/^func (chain *BlockChain) SelectChain(block *Block) bool {$/;"	f	struct:blockchain.BlockChain	typeref:typename:bool
 SendAddr	network/network.go	/^func SendAddr(address string) {$/;"	f	package:network
 SendBlock	network/network.go	/^func SendBlock(address string, b *blockchain.Block) {$/;"	f	package:network
 SendData	network/network.go	/^func SendData(addr string, data []byte) {$/;"	f	package:network

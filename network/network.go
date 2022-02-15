@@ -12,7 +12,6 @@ import (
 	"net"
 	"os"
 	"runtime"
-	"strconv"
 	"syscall"
 
 	death "github.com/vrecan/death/v3" // like signal.h include
@@ -161,8 +160,6 @@ func SendVersion(address string, chain *blockchain.BlockChain) {
 	payload := GobEncode(data)
 	request := append(Cmd2Bytes("version"), payload...)
 
-	//HexDump(request)
-
 	SendData(address, request)
 }
 
@@ -171,7 +168,7 @@ func SendGetBlocks(address string) {
 		AddrFrom: nodeAddress,
 	}
 	payload := GobEncode(data)
-	request := append(Cmd2Bytes("getdata"), payload...)
+	request := append(Cmd2Bytes("getblocks"), payload...)
 
 	SendData(address, request)
 }
@@ -271,7 +268,7 @@ func HandleGetData(request []byte, chain *blockchain.BlockChain) {
 
 	switch payload.Type {
 	case "block":
-		block, err := chain.GetBlock([]byte(payload.ID))
+		block, err := chain.GetBlockByHash([]byte(payload.ID))
 		if err != nil {
 			return
 		}
@@ -379,8 +376,6 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 	req = req[commandLen:]
 	fmt.Printf("Received %s command\n", cmd)
 
-	//	HexDump([]byte(req))
-
 	switch cmd {
 	case "addr":
 		HandleAddr(req)
@@ -402,10 +397,10 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 }
 
 func StartP2PServer(nodeID, minerAddress string) {
-	nodeAddr := fmt.Sprintf("localhost:%s", nodeID)
+	nodeAddress = fmt.Sprintf("localhost:%s", nodeID)
 	mineAddress = minerAddress
 
-	ln, err := net.Listen(protocol, nodeAddr)
+	ln, err := net.Listen(protocol, nodeAddress)
 	Handle(err)
 	defer ln.Close()
 
@@ -413,13 +408,12 @@ func StartP2PServer(nodeID, minerAddress string) {
 	defer chain.Database.Close()
 	go CloseDB(chain) // start in goroutine
 
-	if nodeAddr != KnownNodes[0] {
+	if nodeAddress != KnownNodes[0] {
 		SendVersion(KnownNodes[0], chain)
 	}
 
 	// main server loop
 	for {
-		fmt.Printf("Waiting for connections at %s\n", nodeAddr)
 		conn, err := ln.Accept()
 		Handle(err)
 
@@ -483,49 +477,6 @@ func NodeIsKnown(address string) bool {
 func RequestBlocks() {
 	for _, node := range KnownNodes {
 		SendGetBlocks(node)
-	}
-}
-
-func HexDump(bytes []byte) {
-	var i, j int
-
-	for _, x := range bytes {
-		if i%16 == 0 && i != 0 {
-			fmt.Printf("|")
-
-			for j = i - 16; j < i; j++ {
-				c := rune(bytes[j])
-				if strconv.IsPrint(c) {
-					fmt.Printf("%c", c)
-				} else {
-					fmt.Printf(".")
-				}
-			}
-			fmt.Printf("|\n")
-		}
-		fmt.Printf("%02x ", x)
-		i++
-	}
-	if i != j {
-		remaining := j - 16
-
-		for k := i; k < remaining; k++ {
-			fmt.Printf("   ")
-		}
-		fmt.Printf("|")
-
-		for ; j < i; j++ {
-			c := rune(bytes[j])
-			if strconv.IsPrint(c) {
-				fmt.Printf("%c", c)
-			} else {
-				fmt.Printf(".")
-			}
-		}
-		for k := i; k < remaining; k++ {
-			fmt.Printf(" ")
-		}
-		fmt.Printf("|\n")
 	}
 }
 

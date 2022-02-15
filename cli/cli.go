@@ -40,7 +40,7 @@ func (cli *CommandLine) startNode(nodeID, minerAddress string) {
 		if wallet.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards ", minerAddress)
 		} else {
-			log.Panic("Wrong miner address")
+			log.Panic("Invalid address")
 		}
 	}
 	network.StartP2PServer(nodeID, minerAddress)

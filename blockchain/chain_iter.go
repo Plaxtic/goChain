@@ -3,12 +3,12 @@ package blockchain
 import (
 	"errors"
 
-	"github.com/dgraph-io/badger"
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type BlockChainIterator struct {
 	CurrHash []byte
-	Database *badger.DB
+	Database *leveldb.DB
 }
 
 func (chain *BlockChain) Iterator() *BlockChainIterator {
@@ -24,17 +24,10 @@ func (iter *BlockChainIterator) Next() (*Block, error) {
 		return nil, errors.New("StopIteration")
 	}
 
-	// get next block
-	var block *Block
-	var encodedBlock []byte
-	err := iter.Database.View(func(txn *badger.Txn) error {
-		item, err := txn.Get(iter.CurrHash)
-		encodedBlock, err := item.ValueCopy(encodedBlock)
-		block = Bytes2Block(encodedBlock)
-
-		return err
-	})
-	Handle(err)
+	// get the current block
+	blockData, err := iter.Database.Get(iter.CurrHash, nil)
+	HandleErr(err)
+	block := Bytes2Block(blockData)
 
 	// step back one block
 	iter.CurrHash = block.PrevHash

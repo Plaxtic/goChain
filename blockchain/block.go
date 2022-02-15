@@ -59,9 +59,11 @@ func Genesis(coinbase *Tx) *Block {
 
 // dump single block
 func (block *Block) PrintBlock() {
-	fmt.Printf("Nonce      : %#x\n", block.Nonce)
-	fmt.Printf("Hash       : %x\n", block.Hash)
-	fmt.Printf("PrevHash   : %x\n", block.PrevHash)
+	fmt.Printf("Timestamp : %v\n", time.Unix(block.Timestamp, 0))
+	fmt.Printf("Nonce     : %#x\n", block.Nonce)
+	fmt.Printf("Hash      : %x\n", block.Hash)
+	fmt.Printf("PrevHash  : %x\n", block.PrevHash)
+	fmt.Printf("Height    : %d\n", block.Height)
 
 	fmt.Println("Transactions")
 	for _, tx := range block.Txs {
@@ -77,7 +79,7 @@ func (b *Block) ToBytes() []byte {
 	encoder := gob.NewEncoder(&ret)
 
 	// encode block to bytes
-	Handle(encoder.Encode(b))
+	HandleErr(encoder.Encode(b))
 	return ret.Bytes()
 }
 
@@ -87,12 +89,12 @@ func Bytes2Block(data []byte) *Block {
 	decoder := gob.NewDecoder(bytes.NewReader(data))
 
 	// squash raw bytes back into block structure
-	Handle(decoder.Decode(&block))
+	HandleErr(decoder.Decode(&block))
 	return &block
 }
 
 // Panic on error
-func Handle(err error) {
+func HandleErr(err error) {
 	if err != nil {
 		log.Panic(err)
 	}

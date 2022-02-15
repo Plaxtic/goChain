@@ -49,7 +49,7 @@ func (outs *TxOutputs) ToBytes() []byte {
 	var buffer bytes.Buffer
 
 	encode := gob.NewEncoder(&buffer)
-	Handle(encode.Encode(outs))
+	HandleErr(encode.Encode(outs))
 
 	return buffer.Bytes()
 }
@@ -57,6 +57,6 @@ func (outs *TxOutputs) ToBytes() []byte {
 func Bytes2Txoutputs(data []byte) TxOutputs {
 	var outputs TxOutputs
 	decoder := gob.NewDecoder(bytes.NewReader(data))
-	Handle(decoder.Decode(&outputs))
+	HandleErr(decoder.Decode(&outputs))
 	return outputs
 }

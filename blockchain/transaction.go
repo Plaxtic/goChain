@@ -24,7 +24,7 @@ func (tx *Tx) ToBytes() []byte {
 	var encoded bytes.Buffer
 
 	enc := gob.NewEncoder(&encoded)
-	Handle(enc.Encode(tx))
+	HandleErr(enc.Encode(tx))
 
 	return encoded.Bytes()
 }
@@ -61,7 +61,7 @@ func (tx *Tx) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Tx) {
 		txCopy.Inputs[inId].PubKey = nil
 
 		r, s, err := ecdsa.Sign(rand.Reader, &privKey, txCopy.ID)
-		Handle(err)
+		HandleErr(err)
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Inputs[inId].Sig = signature
@@ -124,6 +124,15 @@ func (tx *Tx) Verify(prevTXs map[string]Tx) bool {
 	return true
 }
 
+func Bytes2Tx(data []byte) Tx {
+	var tx Tx
+
+	dec := gob.NewDecoder(bytes.NewReader(data))
+	HandleErr(dec.Decode(&tx))
+
+	return tx
+}
+
 func CoinbaseTx(to, data string) *Tx {
 	if data == "" {
 		randData := make([]byte, 24)
@@ -156,7 +165,7 @@ func NewTx(w *wallet.Wallet, to string, amount int, UTXO *UTXOSet) *Tx {
 
 	for txid, outs := range validOutputs {
 		txID, err := hex.DecodeString(txid)
-		Handle(err)
+		HandleErr(err)
 
 		for _, out := range outs {
 			input := TxIn{txID, out, nil, w.PublicKey}
