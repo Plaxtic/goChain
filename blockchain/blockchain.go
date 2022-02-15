@@ -124,19 +124,22 @@ func (chain *BlockChain) GetBestHeight() int {
 	var lastBlock Block
 	var lastHash, lastBlockData []byte
 
-	chain.Database.View(func(txn *badger.Txn) error {
+	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
-		lastHash, _ = item.ValueCopy(lastHash)
+		lastHash, err = item.ValueCopy(lastHash)
+		Handle(err)
 
 		item, err = txn.Get(lastHash)
 		Handle(err)
-		lastBlockData, _ := item.ValueCopy(lastBlockData)
+		lastBlockData, err := item.ValueCopy(lastBlockData)
 
 		lastBlock = *Bytes2Block(lastBlockData)
 
 		return nil
 	})
+	Handle(err)
+
 	return lastBlock.Height
 }
 

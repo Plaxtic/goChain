@@ -80,6 +80,7 @@ Hash	blockchain/block.go	/^	Hash      []byte$/;"	m	struct:blockchain.Block	typer
 Hash	blockchain/transaction.go	/^func (tx *Tx) Hash() []byte {$/;"	f	struct:blockchain.Tx	typeref:typename:[]byte
 HashTxs	blockchain/block.go	/^func (block *Block) HashTxs() []byte {$/;"	f	struct:blockchain.Block	typeref:typename:[]byte
 Height	blockchain/block.go	/^	Height    int$/;"	m	struct:blockchain.Block	typeref:typename:int
+HexDump	network/network.go	/^func HexDump(bytes []byte) {$/;"	f	package:network
 ID	blockchain/transaction.go	/^	ID      []byte$/;"	m	struct:blockchain.Tx	typeref:typename:[]byte
 ID	blockchain/txs.go	/^	ID     []byte$/;"	m	struct:blockchain.TxIn	typeref:typename:[]byte
 ID	network/network.go	/^	ID       []byte$/;"	m	struct:network.GetData	typeref:typename:[]byte

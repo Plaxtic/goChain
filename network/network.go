@@ -12,6 +12,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strconv"
 	"syscall"
 
 	death "github.com/vrecan/death/v3" // like signal.h include
@@ -160,6 +161,8 @@ func SendVersion(address string, chain *blockchain.BlockChain) {
 	payload := GobEncode(data)
 	request := append(Cmd2Bytes("version"), payload...)
 
+	//HexDump(request)
+
 	SendData(address, request)
 }
 
@@ -211,7 +214,7 @@ func HandleAddr(request []byte) {
 	var buff bytes.Buffer
 	var payload Addr
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	Handle(dec.Decode(&payload))
 
@@ -224,7 +227,7 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload Block
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	Handle(dec.Decode(&payload))
 
@@ -250,7 +253,7 @@ func HandleGetBlocks(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload GetBlocks
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	Handle(dec.Decode(&payload))
 
@@ -262,7 +265,7 @@ func HandleGetData(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload GetData
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	Handle(dec.Decode(&payload))
 
@@ -287,9 +290,9 @@ func HandleVersion(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload Version
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	dec.Decode(&payload)
+	Handle(dec.Decode(&payload))
 
 	bestHeight := chain.GetBestHeight()
 	otherHeight := payload.BestHeight
@@ -310,7 +313,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload Tx
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	Handle(dec.Decode(&payload))
 
@@ -337,7 +340,7 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload Inventory
 
-	buff.Write(request[:commandLen])
+	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	Handle(dec.Decode(&payload))
 
@@ -373,29 +376,25 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 	Handle(err)
 
 	cmd := Bytes2Cmd(req[:commandLen])
+	req = req[commandLen:]
 	fmt.Printf("Received %s command\n", cmd)
+
+	//	HexDump([]byte(req))
 
 	switch cmd {
 	case "addr":
-		fmt.Println("addr")
 		HandleAddr(req)
 	case "block":
-		fmt.Println("block")
 		HandleBlock(req, chain)
 	case "inv":
-		fmt.Println("inv")
 		HandleInv(req, chain)
 	case "getblocks":
-		fmt.Println("gblk")
 		HandleGetBlocks(req, chain)
 	case "getdata":
-		fmt.Println("gdat")
 		HandleGetData(req, chain)
 	case "tx":
-		fmt.Println("tx")
 		HandleTx(req, chain)
 	case "version":
-		fmt.Println("vrs")
 		HandleVersion(req, chain)
 	default:
 		fmt.Println("Unknown command")
@@ -484,6 +483,49 @@ func NodeIsKnown(address string) bool {
 func RequestBlocks() {
 	for _, node := range KnownNodes {
 		SendGetBlocks(node)
+	}
+}
+
+func HexDump(bytes []byte) {
+	var i, j int
+
+	for _, x := range bytes {
+		if i%16 == 0 && i != 0 {
+			fmt.Printf("|")
+
+			for j = i - 16; j < i; j++ {
+				c := rune(bytes[j])
+				if strconv.IsPrint(c) {
+					fmt.Printf("%c", c)
+				} else {
+					fmt.Printf(".")
+				}
+			}
+			fmt.Printf("|\n")
+		}
+		fmt.Printf("%02x ", x)
+		i++
+	}
+	if i != j {
+		remaining := j - 16
+
+		for k := i; k < remaining; k++ {
+			fmt.Printf("   ")
+		}
+		fmt.Printf("|")
+
+		for ; j < i; j++ {
+			c := rune(bytes[j])
+			if strconv.IsPrint(c) {
+				fmt.Printf("%c", c)
+			} else {
+				fmt.Printf(".")
+			}
+		}
+		for k := i; k < remaining; k++ {
+			fmt.Printf(" ")
+		}
+		fmt.Printf("|\n")
 	}
 }
 
