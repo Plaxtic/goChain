@@ -132,8 +132,8 @@ func (chain *BlockChain) GetHashes() [][]byte {
 	var hashes [][]byte
 	iter := chain.Iterator()
 
-	for block, err := iter.Next(); err == nil; block, err = iter.Next() {
-		hashes = append(hashes, block.Hash)
+	for iter.Next() {
+		hashes = append(hashes, iter.Block.Hash)
 	}
 	return hashes
 }
@@ -179,8 +179,8 @@ func (chain *BlockChain) FindUnspentTxs(pubKeyHash []byte) []Tx {
 	iter := chain.Iterator()
 
 	// iterate through blocks
-	for block, err := iter.Next(); err == nil; block, err = iter.Next() {
-		for _, tx := range block.Txs {
+	for iter.Next() {
+		for _, tx := range iter.Block.Txs {
 			txID := hex.EncodeToString(tx.ID)
 
 			// iterate each transaction output
@@ -216,8 +216,8 @@ func (chain *BlockChain) FindUTXO() map[string]TxOutputs {
 
 	iter := chain.Iterator()
 
-	for blk, err := iter.Next(); err == nil; blk, err = iter.Next() {
-		for _, tx := range blk.Txs {
+	for iter.Next() {
+		for _, tx := range iter.Block.Txs {
 			txID := hex.EncodeToString(tx.ID)
 
 		Outputs:
@@ -247,8 +247,8 @@ func (chain *BlockChain) FindUTXO() map[string]TxOutputs {
 func (chain *BlockChain) FindTx(ID []byte) (Tx, error) {
 	iter := chain.Iterator()
 
-	for blk, err := iter.Next(); err == nil; blk, err = iter.Next() {
-		for _, tx := range blk.Txs {
+	for iter.Next() {
+		for _, tx := range iter.Block.Txs {
 			if bytes.Compare(tx.ID, ID) == 0 {
 				return *tx, nil
 			}
@@ -312,10 +312,10 @@ func openDB(dir string, opts badger.Options) (*badger.DB, error) {
 
 // print blockchain block by block
 func (chain *BlockChain) PrintBlockChain() {
-	iterChain := chain.Iterator()
+	iter := chain.Iterator()
 
-	for block, err := iterChain.Next(); err == nil; block, err = iterChain.Next() {
+	for iter.Next() {
 		fmt.Println("-------------------------------------------------------------------------------------")
-		block.PrintBlock()
+		iter.Block.PrintBlock()
 	}
 }

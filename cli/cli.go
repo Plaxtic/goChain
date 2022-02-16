@@ -43,7 +43,7 @@ func (cli *CommandLine) startNode(nodeID, minerAddress string) {
 			log.Panic("Invalid address")
 		}
 	}
-	network.StartP2PServer(nodeID, minerAddress)
+	network.StartP2P(nodeID, minerAddress)
 }
 
 func (cli *CommandLine) createBlockChain(address, nodeID string) {

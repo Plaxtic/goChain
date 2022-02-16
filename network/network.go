@@ -10,11 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"os"
-	"runtime"
-	"syscall"
-
-	death "github.com/vrecan/death/v3" // like signal.h include
 )
 
 const (
@@ -26,7 +21,7 @@ const (
 var (
 	nodeAddress     string
 	mineAddress     string
-	KnownNodes      = []string{"localhost:3000"}
+	KnownNodes      = []string{}
 	blocksInTransit = [][]byte{}
 	memoryPool      = make(map[string]blockchain.Tx)
 )
@@ -91,19 +86,9 @@ func GobEncode(data interface{}) []byte {
 	var buff bytes.Buffer
 
 	enc := gob.NewEncoder(&buff)
-	Handle(enc.Encode(data))
+	HandleErr(enc.Encode(data))
 
 	return buff.Bytes()
-}
-
-func CloseDB(chain *blockchain.BlockChain) {
-	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-
-	d.WaitForDeathWithFunc(func() {
-		defer os.Exit(1)
-		defer runtime.Goexit()
-		chain.Database.Close()
-	})
 }
 
 func SendAddr(address string) {
@@ -151,6 +136,18 @@ func SendTx(address string, tnx *blockchain.Tx) {
 	SendData(address, request)
 }
 
+func SendVersionAck(address string, chain *blockchain.BlockChain) {
+	data := Version{
+		Version:    version,
+		BestHeight: chain.GetBestHeight(),
+		AddrFrom:   nodeAddress,
+	}
+	payload := GobEncode(data)
+	request := append(Cmd2Bytes("verack"), payload...)
+
+	SendData(address, request)
+}
+
 func SendVersion(address string, chain *blockchain.BlockChain) {
 	data := Version{
 		Version:    version,
@@ -185,15 +182,15 @@ func SendGetData(address, kind string, id []byte) {
 	SendData(address, request)
 }
 
-func SendData(addr string, data []byte) {
-	conn, err := net.Dial(protocol, addr)
+func SendData(address string, data []byte) {
+	conn, err := net.Dial(protocol, address)
 
 	if err != nil {
 		var updatedNodes []string
-		fmt.Printf("%s is unavailable\n", addr)
+		fmt.Printf("%s is unavailable\n", address)
 
 		for _, node := range KnownNodes {
-			if node != addr {
+			if node != address {
 				updatedNodes = append(updatedNodes, node)
 			}
 		}
@@ -204,7 +201,7 @@ func SendData(addr string, data []byte) {
 	defer conn.Close()
 
 	_, err = io.Copy(conn, bytes.NewReader(data))
-	Handle(err)
+	HandleErr(err)
 }
 
 func HandleAddr(request []byte) {
@@ -213,7 +210,7 @@ func HandleAddr(request []byte) {
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	KnownNodes = append(KnownNodes, payload.AddrList...)
 	fmt.Printf("%2d known nodes\n", len(KnownNodes))
@@ -226,7 +223,7 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	blockData := payload.Block
 	block := blockchain.Bytes2Block(blockData)
@@ -252,7 +249,7 @@ func HandleGetBlocks(request []byte, chain *blockchain.BlockChain) {
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	blocks := chain.GetHashes()
 	SendInv(payload.AddrFrom, "block", blocks)
@@ -264,7 +261,7 @@ func HandleGetData(request []byte, chain *blockchain.BlockChain) {
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	switch payload.Type {
 	case "block":
@@ -283,13 +280,13 @@ func HandleGetData(request []byte, chain *blockchain.BlockChain) {
 	}
 }
 
-func HandleVersion(request []byte, chain *blockchain.BlockChain) {
+func HandleVersionAck(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload Version
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	bestHeight := chain.GetBestHeight()
 	otherHeight := payload.BestHeight
@@ -297,10 +294,32 @@ func HandleVersion(request []byte, chain *blockchain.BlockChain) {
 	// check if peer has longer blockchain
 	if bestHeight < otherHeight {
 		SendGetBlocks(payload.AddrFrom)
-	} else if bestHeight > otherHeight { // send peer our blockchain if it is longer
-		SendVersion(payload.AddrFrom, chain)
+	}
+	if NodeIsKnown(payload.AddrFrom) == false {
+		KnownNodes = append(KnownNodes, payload.AddrFrom)
+	}
+}
+
+func HandleVersion(request []byte, chain *blockchain.BlockChain) {
+	var buff bytes.Buffer
+	var payload Version
+
+	buff.Write(request)
+	dec := gob.NewDecoder(&buff)
+	HandleErr(dec.Decode(&payload))
+
+	bestHeight := chain.GetBestHeight()
+	otherHeight := payload.BestHeight
+
+	// acknowledge peer
+	SendVersionAck(payload.AddrFrom, chain)
+
+	// check if peer has longer blockchain
+	if bestHeight < otherHeight {
+		SendGetBlocks(payload.AddrFrom)
 	}
 
+	// add node to known nodes
 	if NodeIsKnown(payload.AddrFrom) == false {
 		KnownNodes = append(KnownNodes, payload.AddrFrom)
 	}
@@ -312,7 +331,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	txData := payload.Transaction
 	tx := blockchain.Bytes2Tx(txData)
@@ -339,7 +358,7 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
 
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
-	Handle(dec.Decode(&payload))
+	HandleErr(dec.Decode(&payload))
 
 	fmt.Printf("Recevied Inventory with %d %s\n", len(payload.Items), payload.Type)
 
@@ -370,7 +389,7 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
 func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 	req, err := ioutil.ReadAll(conn)
 	defer conn.Close()
-	Handle(err)
+	HandleErr(err)
 
 	cmd := Bytes2Cmd(req[:commandLen])
 	req = req[commandLen:]
@@ -391,33 +410,10 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 		HandleTx(req, chain)
 	case "version":
 		HandleVersion(req, chain)
+	case "verack":
+		HandleVersionAck(req, chain)
 	default:
 		fmt.Println("Unknown command")
-	}
-}
-
-func StartP2PServer(nodeID, minerAddress string) {
-	nodeAddress = fmt.Sprintf("localhost:%s", nodeID)
-	mineAddress = minerAddress
-
-	ln, err := net.Listen(protocol, nodeAddress)
-	Handle(err)
-	defer ln.Close()
-
-	chain := blockchain.ContinueBlockChain(nodeID)
-	defer chain.Database.Close()
-	go CloseDB(chain) // start in goroutine
-
-	if nodeAddress != KnownNodes[0] {
-		SendVersion(KnownNodes[0], chain)
-	}
-
-	// main server loop
-	for {
-		conn, err := ln.Accept()
-		Handle(err)
-
-		go HandleConnection(conn, chain) // async
 	}
 }
 
@@ -480,7 +476,7 @@ func RequestBlocks() {
 	}
 }
 
-func Handle(err error) {
+func HandleErr(err error) {
 	if err != nil {
 		log.Panic(err)
 	}
