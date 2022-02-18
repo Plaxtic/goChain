@@ -187,7 +187,7 @@ func SendData(address string, data []byte) {
 
 	if err != nil {
 		var updatedNodes []string
-		fmt.Printf("%s is unavailable\n", address)
+		//		fmt.Printf("%s is unavailable\n", address)
 
 		for _, node := range KnownNodes {
 			if node != address {
@@ -227,7 +227,6 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 
 	blockData := payload.Block
 	block := blockchain.Bytes2Block(blockData)
-	fmt.Println("Recevied block")
 	chain.AddBlock(block)
 
 	if len(blocksInTransit) > 0 {
@@ -235,12 +234,11 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 		SendGetData(payload.AddrFrom, "block", blockHash)
 
 		blocksInTransit = blocksInTransit[1:]
-	} else {
-		UTXOst := blockchain.UTXOSet{
-			BlockChain: chain,
-		}
-		UTXOst.Reindex()
 	}
+	UTXOst := blockchain.UTXOSet{
+		BlockChain: chain,
+	}
+	UTXOst.Reindex()
 }
 
 func HandleGetBlocks(request []byte, chain *blockchain.BlockChain) {
@@ -366,17 +364,25 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
 	case "block":
 
 		// refresh blocksInTransit
-		blocksInTransit = payload.Items
-		blockHash := payload.Items[0]
+		for i, h := range payload.Items {
+			if chain.ContainsBlock(h) {
+				blocksInTransit = payload.Items[:i]
+				break
+			}
+		}
+		numHash := len(blocksInTransit)
+		blockHash := blocksInTransit[numHash-1]
 		SendGetData(payload.AddrFrom, "block", blockHash)
 
 		newInTransit := [][]byte{}
-		for _, b := range blocksInTransit {
+		for i := numHash - 1; i >= 0; i-- {
+			b := blocksInTransit[i]
 			if bytes.Compare(b, blockHash) != 0 {
 				newInTransit = append(newInTransit, b)
 			}
 		}
 		blocksInTransit = newInTransit
+
 	case "tx":
 		txID := payload.Items[0]
 

@@ -44,28 +44,6 @@ func (u UTXOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[s
 	return accumulated, unspentOuts
 }
 
-func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOut {
-	var UTXOs []TxOut
-
-	// create leveldb iterator
-	db := u.BlockChain.Database
-	it := db.NewIterator(util.BytesPrefix(utxoPrefix), nil)
-	defer it.Release()
-
-	// iterate through values of prefix "utxoPrefix"
-	for it.Next() {
-		v := it.Value()
-		outs := Bytes2Txoutputs(v)
-
-		for _, out := range outs.Outputs {
-			if out.IsLockedWithKey(pubKeyHash) {
-				UTXOs = append(UTXOs, out)
-			}
-		}
-	}
-	return UTXOs
-}
-
 func (u UTXOSet) CountTransactions() int {
 	db := u.BlockChain.Database
 	counter := 0
@@ -79,6 +57,28 @@ func (u UTXOSet) CountTransactions() int {
 	return counter
 }
 
+func (u UTXOSet) FindUTXO(pubKeyHash []byte) []TxOut {
+	var UTXOs []TxOut
+
+	// create leveldb iterator
+	db := u.BlockChain.Database
+	it := db.NewIterator(util.BytesPrefix(utxoPrefix), nil)
+	defer it.Release()
+
+	// iterate through values of prefix "utxoPrefix"
+	for it.Next() {
+
+		v := it.Value()
+		outs := Bytes2Txoutputs(v)
+
+		for _, out := range outs.Outputs {
+			if out.IsLockedWithKey(pubKeyHash) {
+				UTXOs = append(UTXOs, out)
+			}
+		}
+	}
+	return UTXOs
+}
 func (u UTXOSet) Reindex() {
 	db := u.BlockChain.Database
 
@@ -106,6 +106,7 @@ func (u *UTXOSet) Update(block *Block) {
 				inID := append(utxoPrefix, in.ID...)
 
 				value, err := db.Get(inID, nil) // problem
+				//				if strings.Contains(err.Error(), "leveldb: not found")
 				HandleErr(err)
 				outs := Bytes2Txoutputs(value)
 

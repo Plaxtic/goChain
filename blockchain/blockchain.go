@@ -6,13 +6,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"os"
-	"path/filepath"
 	"runtime"
-	"strings"
 
-	"github.com/dgraph-io/badger"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -57,20 +53,30 @@ func InitBlockChain(address, nodeID string) *BlockChain {
 	return &newBlockchain
 }
 
-func (chain *BlockChain) AddBlock(block *Block) {
+func (chain *BlockChain) ContainsBlock(hash []byte) bool {
+	iter := chain.Iterator()
 
-	// reference block by hash
-	HandleErr(chain.Database.Put(block.Hash, block.ToBytes(), nil))
+	for iter.Next() {
+		if bytes.Compare(iter.Block.Hash, hash) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (chain *BlockChain) AddBlock(block *Block) {
 
 	// delete previous head
 	HandleErr(chain.Database.Delete([]byte("lh"), nil))
+
+	// reference block by hash
+	HandleErr(chain.Database.Put(block.Hash, block.ToBytes(), nil))
 
 	// refernce hash by "lh" (last-hash)
 	HandleErr(chain.Database.Put([]byte("lh"), block.Hash, nil))
 
 	// update head
 	chain.LastHash = block.Hash
-	fmt.Printf("Added block %x\n", block.Hash)
 }
 
 func (chain *BlockChain) MineBlock(txs []*Tx) *Block {
@@ -84,7 +90,6 @@ func (chain *BlockChain) MineBlock(txs []*Tx) *Block {
 
 	// add new block to chain
 	chain.AddBlock(newBlock)
-	chain.LastHash = newBlock.Hash
 
 	return newBlock
 }
@@ -283,39 +288,11 @@ func (chain *BlockChain) VerifyTx(tx *Tx) bool {
 	return tx.Verify(prevTXs)
 }
 
-func retry(dir string, originalOpts badger.Options) (*badger.DB, error) {
-	lockPath := filepath.Join(dir, "LOCK")
-	if err := os.Remove(lockPath); err != nil {
-		return nil, fmt.Errorf(`removing "LOCK": %s`, err)
-	}
-	retryOpts := originalOpts
-	retryOpts.Truncate = true
-	db, err := badger.Open(retryOpts)
-	return db, err
-}
-
-// stuff to prevent database corruption (like when a process locking it is killed)
-func openDB(dir string, opts badger.Options) (*badger.DB, error) {
-	if db, err := badger.Open(opts); err != nil {
-		if strings.Contains(err.Error(), "LOCK") {
-			if db, err := retry(dir, opts); err == nil {
-				log.Println("database unlocked, value log truncated")
-				return db, nil
-			}
-			log.Println("could not unlock database:", err)
-		}
-		return nil, err
-	} else {
-		return db, nil
-	}
-}
-
 // print blockchain block by block
 func (chain *BlockChain) PrintBlockChain() {
 	iter := chain.Iterator()
 
 	for iter.Next() {
-		fmt.Println("-------------------------------------------------------------------------------------")
 		iter.Block.PrintBlock()
 	}
 }

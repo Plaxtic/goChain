@@ -9,14 +9,13 @@ import (
 	"time"
 )
 
-// (very) minimal block
 type Block struct {
 	Timestamp int64
-	Hash      []byte
-	Txs       []*Tx
-	PrevHash  []byte
 	Nonce     int
+	Hash      []byte
+	PrevHash  []byte
 	Height    int
+	Txs       []*Tx
 }
 
 func (block *Block) HashTxs() []byte {
@@ -37,11 +36,11 @@ func (block *Block) HashTxs() []byte {
 func CreateBlock(txs []*Tx, prevHash []byte, height int) *Block {
 	block := &Block{
 		Timestamp: time.Now().Unix(),
-		Hash:      []byte{},
-		Txs:       txs,
-		PrevHash:  prevHash,
 		Nonce:     0,
+		Hash:      []byte{},
+		PrevHash:  prevHash,
 		Height:    height,
+		Txs:       txs,
 	}
 	pow := NewProof(block)
 	nonce, hash := pow.Run()
@@ -55,23 +54,6 @@ func CreateBlock(txs []*Tx, prevHash []byte, height int) *Block {
 // first block in a chain
 func Genesis(coinbase *Tx) *Block {
 	return CreateBlock([]*Tx{coinbase}, []byte{}, 0)
-}
-
-// dump single block
-func (block *Block) PrintBlock() {
-	fmt.Printf("Timestamp : %v\n", time.Unix(block.Timestamp, 0))
-	fmt.Printf("Nonce     : %#x\n", block.Nonce)
-	fmt.Printf("Hash      : %x\n", block.Hash)
-	fmt.Printf("PrevHash  : %x\n", block.PrevHash)
-	fmt.Printf("Height    : %d\n", block.Height)
-
-	fmt.Println("Transactions")
-	for _, tx := range block.Txs {
-		tx.PrintTx()
-	}
-
-	pow := NewProof(block)
-	fmt.Printf("ValidBlock : %s\n", strconv.FormatBool(pow.Validate()))
 }
 
 func (b *Block) ToBytes() []byte {
@@ -98,4 +80,24 @@ func HandleErr(err error) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+// dump single block
+func (block *Block) PrintBlock() {
+	fmt.Printf("\n**************************** BLOCK %d ****************************\n\n", block.Height+1)
+	fmt.Printf("Block Header\n")
+	fmt.Printf("\t|-Timestamp        : %v\n", time.Unix(block.Timestamp, 0))
+	fmt.Printf("\t|-Nonce            : %#x\n", block.Nonce)
+	fmt.Printf("\t|-Hash             : %x\n", block.Hash)
+	fmt.Printf("\t|-PrevHash         : %x\n", block.PrevHash)
+	fmt.Printf("\t|-Height           : %d\n", block.Height)
+
+	fmt.Println("\nTransactions")
+	for _, tx := range block.Txs {
+		tx.PrintTx()
+	}
+
+	pow := NewProof(block)
+	fmt.Printf("ValidBlock : %s\n", strconv.FormatBool(pow.Validate()))
+	fmt.Printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n")
 }

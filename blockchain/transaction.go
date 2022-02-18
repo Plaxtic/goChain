@@ -143,7 +143,7 @@ func CoinbaseTx(to, data string) *Tx {
 		data = fmt.Sprintf("%x", randData)
 	}
 
-	txin := TxIn{[]byte{}, 01, nil, []byte(data)}
+	txin := TxIn{[]byte{}, -1, nil, []byte(data)}
 	txout := NewTxOut(10, to) // 10 coin block minting reward
 
 	tx := Tx{nil, []TxIn{txin}, []TxOut{*txout}}
@@ -193,17 +193,18 @@ func (tx *Tx) IsCoinbase() bool {
 }
 
 func (tx *Tx) PrintTx() {
-	fmt.Printf("  TX ID: %x\n", tx.ID)
+	fmt.Printf("\t|-Transaction ID   : %x\n", tx.ID)
 
 	for i, in := range tx.Inputs {
-		fmt.Printf("  intput %d:\n", i+1)
-		fmt.Printf("    ID         :  %x\n", in.ID)
-		fmt.Printf("    OUT        :  %d\n", in.Out)
-		fmt.Printf("    Signature  :  %x\n", in.Sig)
+		fmt.Printf("\t|------input %d-----\n", i+1)
+		fmt.Printf("\t\t|-ID         :  %x\n", in.ID)
+		fmt.Printf("\t\t|-OUT        :  %d\n", in.Out)
+		fmt.Printf("\t\t|-Signature  :  (Too long)\n") //"%x\n", in.Sig)
 	}
 	for i, out := range tx.Outputs {
-		fmt.Printf("  Output %d:\n", i+1)
-		fmt.Printf("    Value      :  %d\n", out.Value)
-		fmt.Printf("    Public Key :  %x\n", out.PublicKeyHash)
+		fmt.Printf("\t|-----output %d-----\n", i+1)
+		fmt.Printf("\t\t|-Value      :  %d\n", out.Value)
+		fmt.Printf("\t\t|-Public Key :  %x\n", out.PublicKeyHash)
 	}
+	fmt.Println("")
 }

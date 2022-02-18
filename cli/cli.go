@@ -81,12 +81,12 @@ func (cli *CommandLine) getBalance(address, nodeID string) {
 func (cli *CommandLine) reindexUTXO(nodeID string) {
 	chain := blockchain.ContinueBlockChain(nodeID)
 	defer chain.Database.Close()
-	UTXOSet := blockchain.UTXOSet{
+	UTXOst := blockchain.UTXOSet{
 		BlockChain: chain,
 	}
-	UTXOSet.Reindex()
+	UTXOst.Reindex()
 
-	count := UTXOSet.CountTransactions()
+	count := UTXOst.CountTransactions()
 	fmt.Printf("Done! There are %d transactions in the UTXO set.\n", count)
 }
 
@@ -111,10 +111,11 @@ func (cli *CommandLine) send(from, to string, amount int, nodeID string, mineNow
 		cbTx := blockchain.CoinbaseTx(from, "")
 		txs := []*blockchain.Tx{cbTx, tx}
 		block := chain.MineBlock(txs)
+		UTXOst.Reindex()
 		UTXOst.Update(block)
 	} else {
 		network.SendTx(network.KnownNodes[0], tx)
-		fmt.Println("Sent transaction")
+		fmt.Println("Broadcasted transaction")
 	}
 	fmt.Printf("Sent %d to %s", amount, to)
 }

@@ -39,6 +39,7 @@ CloseDB	network/p2p.go	/^func CloseDB(chain *blockchain.BlockChain) {$/;"	f	pack
 Cmd2Bytes	network/network.go	/^func Cmd2Bytes(cmd string) []byte {$/;"	f	package:network	typeref:typename:[]byte
 CoinbaseTx	blockchain/transaction.go	/^func CoinbaseTx(to, data string) *Tx {$/;"	f	package:blockchain	typeref:typename:*Tx
 CommandLine	cli/cli.go	/^type CommandLine struct{}$/;"	s	package:cli
+ContainsBlock	blockchain/blockchain.go	/^func (chain *BlockChain) ContainsBlock(hash []byte) bool {$/;"	f	struct:blockchain.BlockChain	typeref:typename:bool
 ContinueBlockChain	blockchain/blockchain.go	/^func ContinueBlockChain(nodeID string) *BlockChain {$/;"	f	package:blockchain	typeref:typename:*BlockChain
 CountTransactions	blockchain/utxs.go	/^func (u UTXOSet) CountTransactions() int {$/;"	f	struct:blockchain.UTXOSet	typeref:typename:int
 CreateBlock	blockchain/block.go	/^func CreateBlock(txs []*Tx, prevHash []byte, height int) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
@@ -212,14 +213,12 @@ mineAddress	network/network.go	/^	mineAddress     string$/;"	v	package:network	t
 network	network/network.go	/^package network$/;"	p
 network	network/p2p.go	/^package network$/;"	p
 nodeAddress	network/network.go	/^	nodeAddress     string$/;"	v	package:network	typeref:typename:string
-openDB	blockchain/blockchain.go	/^func openDB(dir string, opts badger.Options) (*badger.DB, error) {$/;"	f	package:blockchain	typeref:typename:(*badger.DB, error)
 portPath	network/p2p.go	/^	portPath = ".\/ports"$/;"	c	package:network
 prefixLength	blockchain/utxs.go	/^	prefixLength = len(utxoPrefix)$/;"	v	package:blockchain
 printChain	cli/cli.go	/^func (cli *CommandLine) printChain(nodeID string) {$/;"	f	struct:cli.CommandLine
 printUsage	cli/cli.go	/^func (cli *CommandLine) printUsage() {$/;"	f	struct:cli.CommandLine
 protocol	network/network.go	/^	protocol   = "tcp"$/;"	c	package:network
 reindexUTXO	cli/cli.go	/^func (cli *CommandLine) reindexUTXO(nodeID string) {$/;"	f	struct:cli.CommandLine
-retry	blockchain/blockchain.go	/^func retry(dir string, originalOpts badger.Options) (*badger.DB, error) {$/;"	f	package:blockchain	typeref:typename:(*badger.DB, error)
 searchForPeers	network/p2p.go	/^func searchForPeers(chain *blockchain.BlockChain) {$/;"	f	package:network
 send	cli/cli.go	/^func (cli *CommandLine) send(from, to string, amount int, nodeID string, mineNow bool) {$/;"	f	struct:cli.CommandLine
 startNode	cli/cli.go	/^func (cli *CommandLine) startNode(nodeID, minerAddress string) {$/;"	f	struct:cli.CommandLine
