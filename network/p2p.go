@@ -136,7 +136,17 @@ func searchForPeers(chain *blockchain.BlockChain) {
 	}
 }
 
-func StartP2P(chain *blockchain.BlockChain) {
+func StartP2P(nodeID, minerAddress string) {
+
+	// set miner address globaly
+	mineAddress = minerAddress
+
+	// load blockchain
+	chain := blockchain.ContinueBlockChain(nodeID)
+	defer chain.Database.Close()
+
+	// catch interrupts/signals
+	go CloseDB(chain)
 
 	// start server in go routine
 	go startServer(chain)

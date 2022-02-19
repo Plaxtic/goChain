@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	protocol   = "tcp"
-	version    = 1
-	commandLen = 12
+	protocol     = "tcp"
+	version      = 1
+	commandLen   = 12
+	maxTXPoolSiz = 3
 )
 
 var (
@@ -327,23 +328,39 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 	var buff bytes.Buffer
 	var payload Tx
 
+	// decode
 	buff.Write(request)
 	dec := gob.NewDecoder(&buff)
 	HandleErr(dec.Decode(&payload))
 
+	// get transaction from payload
 	txData := payload.Transaction
 	tx := blockchain.Bytes2Tx(txData)
+
+	// check not in chain yet
+	_, err := chain.FindTx(tx.ID)
+	if err == nil {
+		return
+	}
+
+	// add to pool
 	memoryPool[hex.EncodeToString(tx.ID)] = tx
 
-	fmt.Printf("%s, %d\n", nodeAddress, len(memoryPool))
-
+	// mine block if transation pool full and mining on
+	mine := len(mineAddress) > 0 && len(memoryPool) > maxTXPoolSiz
+	if mine {
+		MineTx(chain)
+	}
 	for _, node := range KnownNodes {
 		if node != nodeAddress && node != payload.AddrFrom {
-			SendInv(node, "tx", [][]byte{tx.ID})
+
+			// broadcast transaction or new chain
+			if !mine {
+				SendInv(node, "tx", [][]byte{tx.ID})
+			} else {
+				SendVersion(node, chain)
+			}
 		}
-	}
-	if len(memoryPool) >= 2 && len(mineAddress) > 0 {
-		MineTx(chain)
 	}
 }
 
@@ -367,18 +384,20 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
 				break
 			}
 		}
-		numHash := len(blocksInTransit)
-		blockHash := blocksInTransit[numHash-1]
-		SendGetData(payload.AddrFrom, "block", blockHash)
+		if len(blocksInTransit) > 0 {
+			numHash := len(blocksInTransit)
+			blockHash := blocksInTransit[numHash-1]
+			SendGetData(payload.AddrFrom, "block", blockHash)
 
-		newInTransit := [][]byte{}
-		for i := numHash - 1; i >= 0; i-- {
-			b := blocksInTransit[i]
-			if bytes.Compare(b, blockHash) != 0 {
-				newInTransit = append(newInTransit, b)
+			newInTransit := [][]byte{}
+			for i := numHash - 1; i >= 0; i-- {
+				b := blocksInTransit[i]
+				if bytes.Compare(b, blockHash) != 0 {
+					newInTransit = append(newInTransit, b)
+				}
 			}
+			blocksInTransit = newInTransit
 		}
-		blocksInTransit = newInTransit
 
 	case "tx":
 		txID := payload.Items[0]
@@ -429,8 +448,8 @@ func MineTx(chain *blockchain.BlockChain) {
 	var txs []*blockchain.Tx
 
 	for id := range memoryPool {
-		fmt.Printf("tx: %x\n", memoryPool[id].ID)
 		tx := memoryPool[id]
+
 		if chain.VerifyTx(&tx) {
 			txs = append(txs, &tx)
 		}
@@ -444,8 +463,11 @@ func MineTx(chain *blockchain.BlockChain) {
 	cbTx := blockchain.CoinbaseTx(mineAddress, "")
 	txs = append(txs, cbTx)
 
-	// refresh UTXOs
+	// mine new block
+	fmt.Println("Mining...")
 	newBlock := chain.MineBlock(txs)
+
+	// refresh UTXOs
 	UTXOst := blockchain.UTXOSet{
 		BlockChain: chain,
 	}

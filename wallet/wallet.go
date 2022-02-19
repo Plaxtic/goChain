@@ -46,7 +46,6 @@ func PublicKeyHash(pubKey []byte) []byte {
 }
 
 // this takes the output of the PublicKeyHash(), hashes it twice more and grabs the last 4 bytes
-// fuck knows why
 func Checksum(input []byte) []byte {
 	firstHash := sha256.Sum256(input)
 	secondHash := sha256.Sum256(firstHash[:])
@@ -71,9 +70,8 @@ func (w *Wallet) GetAddress() []byte {
 	// finaly, encode in base58 to get address
 	address := Base58Encode(fullHash)
 
-	fmt.Printf("Public Key     : %x\n", w.PublicKey)
-	fmt.Printf("Public Hash    : %x\n", pubHash)
-	fmt.Printf("Address        : %x\n", address)
+	// print new address
+	fmt.Printf("Address        : %s\n", address)
 
 	return address
 }

@@ -57,14 +57,15 @@ func (tx *Tx) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Tx) {
 		prevTX := prevTXs[hex.EncodeToString(input.ID)]
 		txCopy.Inputs[inId].Sig = nil
 		txCopy.Inputs[inId].PubKey = prevTX.Outputs[input.Out].PublicKeyHash
-		txCopy.ID = txCopy.Hash()
-		txCopy.Inputs[inId].PubKey = nil
 
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, txCopy.ID)
+		dataToSign := fmt.Sprintf("%x\n", txCopy)
+
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
 		HandleErr(err)
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Inputs[inId].Sig = signature
+		txCopy.Inputs[inId].PubKey = nil
 	}
 }
 
@@ -89,20 +90,20 @@ func (tx *Tx) Verify(prevTXs map[string]Tx) bool {
 		return true
 	}
 
-	txCopy := tx.TrimmedCopy()
-	curve := elliptic.P256()
-
 	// I CHANGED THIS MIGHT BE WRONG
-	for inId, input := range tx.Inputs {
+	for _, input := range tx.Inputs {
 		if prevTXs[hex.EncodeToString(input.ID)].ID == nil {
 			log.Panic("Previous transaction does not exist")
 		}
+	}
 
+	txCopy := tx.TrimmedCopy()
+	curve := elliptic.P256()
+
+	for inId, input := range tx.Inputs {
 		prevTx := prevTXs[hex.EncodeToString(input.ID)]
 		txCopy.Inputs[inId].Sig = nil
 		txCopy.Inputs[inId].PubKey = prevTx.Outputs[input.Out].PublicKeyHash
-		txCopy.ID = txCopy.Hash()
-		txCopy.Inputs[inId].PubKey = nil
 
 		r := big.Int{}
 		s := big.Int{}
@@ -116,10 +117,18 @@ func (tx *Tx) Verify(prevTXs map[string]Tx) bool {
 		x.SetBytes(input.PubKey[:(keyLen / 2)])
 		y.SetBytes(input.PubKey[(keyLen / 2):])
 
-		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y} // Nouveau-syntax
-		if ecdsa.Verify(&rawPubKey, txCopy.ID, &r, &s) == false {
+		dataToVerify := fmt.Sprintf("%x\n", txCopy)
+
+		rawPubKey := ecdsa.PublicKey{
+			Curve: curve,
+			X:     &x,
+			Y:     &y,
+		}
+
+		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
 			return false
 		}
+		txCopy.Inputs[inId].PubKey = nil
 	}
 	return true
 }
@@ -174,7 +183,6 @@ func NewTx(w *wallet.Wallet, to string, amount int, UTXO *UTXOSet) *Tx {
 	}
 
 	from := fmt.Sprintf("%s", w.GetAddress())
-
 	outputs = append(outputs, *NewTxOut(amount, to))
 
 	if acc > amount {
