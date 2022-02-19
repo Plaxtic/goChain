@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -18,6 +19,7 @@ const (
 )
 
 type BlockChain struct {
+	Mu       sync.Mutex
 	LastHash []byte
 	Database *leveldb.DB
 }

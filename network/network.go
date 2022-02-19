@@ -125,10 +125,10 @@ func SendInv(address, kind string, items [][]byte) {
 	SendData(address, request)
 }
 
-func SendTx(address string, tnx *blockchain.Tx) {
+func SendTx(address string, tx *blockchain.Tx) {
 	data := Tx{
 		AddrFrom:    nodeAddress,
-		Transaction: tnx.ToBytes(),
+		Transaction: tx.ToBytes(),
 	}
 	payload := GobEncode(data)
 	request := append(Cmd2Bytes("tx"), payload...)
@@ -337,16 +337,13 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 
 	fmt.Printf("%s, %d\n", nodeAddress, len(memoryPool))
 
-	if nodeAddress == KnownNodes[0] {
-		for _, node := range KnownNodes {
-			if node != nodeAddress && node != payload.AddrFrom {
-				SendInv(node, "tx", [][]byte{tx.ID})
-			}
+	for _, node := range KnownNodes {
+		if node != nodeAddress && node != payload.AddrFrom {
+			SendInv(node, "tx", [][]byte{tx.ID})
 		}
-	} else {
-		if len(memoryPool) >= 2 && len(mineAddress) > 0 {
-			MineTx(chain)
-		}
+	}
+	if len(memoryPool) >= 2 && len(mineAddress) > 0 {
+		MineTx(chain)
 	}
 }
 
@@ -397,6 +394,11 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 	defer conn.Close()
 	HandleErr(err)
 
+	// skip bad connections
+	if len(req) < commandLen {
+		return
+	}
+
 	cmd := Bytes2Cmd(req[:commandLen])
 	req = req[commandLen:]
 	fmt.Printf("Received %s command\n", cmd)
@@ -427,7 +429,7 @@ func MineTx(chain *blockchain.BlockChain) {
 	var txs []*blockchain.Tx
 
 	for id := range memoryPool {
-		fmt.Printf("tx: %s\n", memoryPool[id].ID)
+		fmt.Printf("tx: %x\n", memoryPool[id].ID)
 		tx := memoryPool[id]
 		if chain.VerifyTx(&tx) {
 			txs = append(txs, &tx)

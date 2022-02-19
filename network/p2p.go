@@ -2,6 +2,7 @@ package network
 
 import (
 	"bufio"
+	"errors"
 	"exx/gochain/blockchain"
 	"fmt"
 	"log"
@@ -94,6 +95,27 @@ func startServer(chain *blockchain.BlockChain) {
 	}
 }
 
+func GetAvailablePeer() (address string, err error) {
+
+	// create port iterator
+	ports := NewFileIter(portPath)
+
+	// iterate ports
+	for ports.Next() {
+
+		// concat port to host
+		address = fmt.Sprintf("localhost:%s", ports.Line)
+
+		// try connect
+		conn, err := net.Dial(protocol, address)
+		if err == nil {
+			conn.Close()
+			return address, err
+		}
+	}
+	return "", errors.New("No peers avalible")
+}
+
 func searchForPeers(chain *blockchain.BlockChain) {
 
 	// create port iterator
@@ -114,17 +136,7 @@ func searchForPeers(chain *blockchain.BlockChain) {
 	}
 }
 
-func StartP2P(nodeID, minerAddress string) {
-
-	// save miner address globaly
-	mineAddress = minerAddress
-
-	// load blockchain
-	chain := blockchain.ContinueBlockChain(nodeID)
-	defer chain.Database.Close()
-
-	// catch interrupts/signals
-	go CloseDB(chain)
+func StartP2P(chain *blockchain.BlockChain) {
 
 	// start server in go routine
 	go startServer(chain)
