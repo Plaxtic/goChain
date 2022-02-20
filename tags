@@ -29,22 +29,24 @@ Block	network/network.go	/^	Block    []byte$/;"	m	struct:network.Block	typeref:t
 Block	network/network.go	/^type Block struct {$/;"	s	package:network
 BlockChain	blockchain/blockchain.go	/^type BlockChain struct {$/;"	s	package:blockchain
 BlockChain	blockchain/utxs.go	/^	BlockChain *BlockChain$/;"	m	struct:blockchain.UTXOSet	typeref:typename:*BlockChain
+BlockChain	cli/new.go	/^	BlockChain *blockchain.BlockChain$/;"	m	struct:cli.CommandLine	typeref:typename:*blockchain.BlockChain
 BlockChainIterator	blockchain/chain_iter.go	/^type BlockChainIterator struct {$/;"	s	package:blockchain
 Bytes2Block	blockchain/block.go	/^func Bytes2Block(data []byte) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
 Bytes2Cmd	network/network.go	/^func Bytes2Cmd(bytes []byte) string {$/;"	f	package:network	typeref:typename:string
 Bytes2Tx	blockchain/transaction.go	/^func Bytes2Tx(data []byte) Tx {$/;"	f	package:blockchain	typeref:typename:Tx
 Bytes2Txoutputs	blockchain/txs.go	/^func Bytes2Txoutputs(data []byte) TxOutputs {$/;"	f	package:blockchain	typeref:typename:TxOutputs
 Checksum	wallet/wallet.go	/^func Checksum(input []byte) []byte {$/;"	f	package:wallet	typeref:typename:[]byte
-CloseDB	network/p2p.go	/^func CloseDB(chain *blockchain.BlockChain) {$/;"	f	package:network
+CloseDB	cli/new.go	/^func CloseDB(chain *blockchain.BlockChain) {$/;"	f	package:cli
 Cmd2Bytes	network/network.go	/^func Cmd2Bytes(cmd string) []byte {$/;"	f	package:network	typeref:typename:[]byte
 CoinbaseTx	blockchain/transaction.go	/^func CoinbaseTx(to, data string) *Tx {$/;"	f	package:blockchain	typeref:typename:*Tx
-CommandLine	cli/cli.go	/^type CommandLine struct{}$/;"	s	package:cli
+CommandLine	cli/new.go	/^type CommandLine struct {$/;"	s	package:cli
 ContainsBlock	blockchain/blockchain.go	/^func (chain *BlockChain) ContainsBlock(hash []byte) bool {$/;"	f	struct:blockchain.BlockChain	typeref:typename:bool
 ContinueBlockChain	blockchain/blockchain.go	/^func ContinueBlockChain(nodeID string) *BlockChain {$/;"	f	package:blockchain	typeref:typename:*BlockChain
 CountTransactions	blockchain/utxs.go	/^func (u UTXOSet) CountTransactions() int {$/;"	f	struct:blockchain.UTXOSet	typeref:typename:int
 CreateBlock	blockchain/block.go	/^func CreateBlock(txs []*Tx, prevHash []byte, height int) *Block {$/;"	f	package:blockchain	typeref:typename:*Block
 CreateWallets	wallet/persist.go	/^func CreateWallets(nodeID string) (*Wallets, error) {$/;"	f	package:wallet	typeref:typename:(*Wallets, error)
 CurrHash	blockchain/chain_iter.go	/^	CurrHash []byte$/;"	m	struct:blockchain.BlockChainIterator	typeref:typename:[]byte
+DBPath	blockchain/blockchain.go	/^	DBPath      = ".\/tmp\/blocks_%s"$/;"	c	package:blockchain
 DBexists	blockchain/blockchain.go	/^func DBexists(path string) bool {$/;"	f	package:blockchain	typeref:typename:bool
 Data	blockchain/merkel.go	/^	Data  []byte$/;"	m	struct:blockchain.MerkleNode	typeref:typename:[]byte
 Database	blockchain/blockchain.go	/^	Database *leveldb.DB$/;"	m	struct:blockchain.BlockChain	typeref:typename:*leveldb.DB
@@ -75,7 +77,7 @@ HandleAddr	network/network.go	/^func HandleAddr(request []byte) {$/;"	f	package:
 HandleBlock	network/network.go	/^func HandleBlock(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
 HandleConnection	network/network.go	/^func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {$/;"	f	package:network
 HandleErr	blockchain/block.go	/^func HandleErr(err error) {$/;"	f	package:blockchain
-HandleErr	cli/cli.go	/^func HandleErr(err error) {$/;"	f	package:cli
+HandleErr	cli/new.go	/^func HandleErr(err error) {$/;"	f	package:cli
 HandleErr	network/network.go	/^func HandleErr(err error) {$/;"	f	package:network
 HandleGetBlocks	network/network.go	/^func HandleGetBlocks(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
 HandleGetData	network/network.go	/^func HandleGetData(request []byte, chain *blockchain.BlockChain) {$/;"	f	package:network
@@ -139,7 +141,7 @@ RequestBlocks	network/network.go	/^func RequestBlocks() {$/;"	f	package:network
 Right	blockchain/merkel.go	/^	Right *MerkleNode$/;"	m	struct:blockchain.MerkleNode	typeref:typename:*MerkleNode
 RootNode	blockchain/merkel.go	/^	RootNode *MerkleNode$/;"	m	struct:blockchain.MerkleTree	typeref:typename:*MerkleNode
 Run	blockchain/pow.go	/^func (pow *ProofOfWork) Run() (int, []byte) {$/;"	f	struct:blockchain.ProofOfWork	typeref:typename:(int, []byte)
-Run	cli/cli.go	/^func (cli *CommandLine) Run() {$/;"	f	struct:cli.CommandLine
+Run	cli/new.go	/^func (cli *CommandLine) Run() {$/;"	f	struct:cli.CommandLine
 SaveFile	wallet/persist.go	/^func (ws *Wallets) SaveFile(nodeID string) {$/;"	f	struct:wallet.Wallets
 Scanner	network/p2p.go	/^	Scanner *bufio.Scanner$/;"	m	struct:network.FileIter	typeref:typename:*bufio.Scanner
 SelectChain	blockchain/blockchain.go	/^func (chain *BlockChain) SelectChain(block *Block) bool {$/;"	f	struct:blockchain.BlockChain	typeref:typename:bool
@@ -155,7 +157,7 @@ SendVersionAck	network/network.go	/^func SendVersionAck(address string, chain *b
 Sig	blockchain/txs.go	/^	Sig    []byte$/;"	m	struct:blockchain.TxIn	typeref:typename:[]byte
 Sign	blockchain/transaction.go	/^func (tx *Tx) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Tx) {$/;"	f	struct:blockchain.Tx
 SignTx	blockchain/blockchain.go	/^func (chain *BlockChain) SignTx(tx *Tx, privKey ecdsa.PrivateKey) {$/;"	f	struct:blockchain.BlockChain
-StartP2P	network/p2p.go	/^func StartP2P(nodeID, minerAddress string) {$/;"	f	package:network
+StartP2P	network/p2p.go	/^func StartP2P(chain *blockchain.BlockChain, minerAddress string) {$/;"	f	package:network
 Target	blockchain/pow.go	/^	Target *big.Int$/;"	m	struct:blockchain.ProofOfWork	typeref:typename:*big.Int
 Timestamp	blockchain/block.go	/^	Timestamp int64$/;"	m	struct:blockchain.Block	typeref:typename:int64
 ToBytes	blockchain/block.go	/^func (b *Block) ToBytes() []byte {$/;"	f	struct:blockchain.Block	typeref:typename:[]byte
@@ -195,18 +197,16 @@ blockchain	blockchain/transaction.go	/^package blockchain$/;"	p
 blockchain	blockchain/txs.go	/^package blockchain$/;"	p
 blockchain	blockchain/utxs.go	/^package blockchain$/;"	p
 blocksInTransit	network/network.go	/^	blocksInTransit = [][]byte{}$/;"	v	package:network
-checkAddress	cli/cli.go	/^func checkAddress(address string) {$/;"	f	package:cli
+checkAddress	cli/new.go	/^func checkAddress(address string) {$/;"	f	package:cli
 checksumLen	wallet/wallet.go	/^	checksumLen = 4$/;"	c	package:wallet
-cli	cli/cli.go	/^package cli$/;"	p
+cli	cli/new.go	/^package cli$/;"	p
 commandLen	network/network.go	/^	commandLen   = 12$/;"	c	package:network
-createBlockChain	cli/cli.go	/^func (cli *CommandLine) createBlockChain(address, nodeID string) {$/;"	f	struct:cli.CommandLine
-createWallet	cli/cli.go	/^func (cli *CommandLine) createWallet(nodeID string) {$/;"	f	struct:cli.CommandLine
-dbPath	blockchain/blockchain.go	/^	dbPath      = ".\/tmp\/blocks_%s"$/;"	c	package:blockchain
-death	network/p2p.go	/^	death "github.com\/vrecan\/death\/v3" \/\/ like signal.h include$/;"	P	package:github.com/vrecan/death/v3
+createWallet	cli/new.go	/^func (cli *CommandLine) createWallet() string {$/;"	f	struct:cli.CommandLine	typeref:typename:string
+death	cli/new.go	/^	death "github.com\/vrecan\/death\/v3"$/;"	P	package:github.com/vrecan/death/v3
 genesisData	blockchain/blockchain.go	/^	genesisData = "GENESIS"$/;"	c	package:blockchain
-getBalance	cli/cli.go	/^func (cli *CommandLine) getBalance(address, nodeID string) {$/;"	f	struct:cli.CommandLine
+getBalance	cli/new.go	/^func (cli *CommandLine) getBalance(address string) {$/;"	f	struct:cli.CommandLine
 goChain	README.md	/^# goChain$/;"	c
-listAddresses	cli/cli.go	/^func (cli *CommandLine) listAddresses(nodeID string) {$/;"	f	struct:cli.CommandLine
+listAddresses	cli/new.go	/^func (cli *CommandLine) listAddresses() {$/;"	f	struct:cli.CommandLine
 log	blockchain/pow.go	/^	log "github.com\/llimllib\/loglevel"$/;"	P	package:github.com/llimllib/loglevel
 main	main.go	/^func main() {$/;"	f	package:main
 main	main.go	/^package main$/;"	p
@@ -216,18 +216,18 @@ mineAddress	network/network.go	/^	mineAddress     string$/;"	v	package:network	t
 network	network/network.go	/^package network$/;"	p
 network	network/p2p.go	/^package network$/;"	p
 nodeAddress	network/network.go	/^	nodeAddress     string$/;"	v	package:network	typeref:typename:string
+nodeID	cli/new.go	/^	nodeID     string$/;"	m	struct:cli.CommandLine	typeref:typename:string
 portPath	network/p2p.go	/^	portPath = ".\/ports"$/;"	c	package:network
 prefixLength	blockchain/utxs.go	/^	prefixLength = len(utxoPrefix)$/;"	v	package:blockchain
-printChain	cli/cli.go	/^func (cli *CommandLine) printChain(nodeID string) {$/;"	f	struct:cli.CommandLine
-printUsage	cli/cli.go	/^func (cli *CommandLine) printUsage() {$/;"	f	struct:cli.CommandLine
+printChain	cli/new.go	/^func (cli *CommandLine) printChain() {$/;"	f	struct:cli.CommandLine
+printUsage	cli/new.go	/^func (cli *CommandLine) printUsage() {$/;"	f	struct:cli.CommandLine
 protocol	network/network.go	/^	protocol     = "tcp"$/;"	c	package:network
-reindexUTXO	cli/cli.go	/^func (cli *CommandLine) reindexUTXO(nodeID string) {$/;"	f	struct:cli.CommandLine
+reindexUTXO	cli/new.go	/^func (cli *CommandLine) reindexUTXO() {$/;"	f	struct:cli.CommandLine
 searchForPeers	network/p2p.go	/^func searchForPeers(chain *blockchain.BlockChain) {$/;"	f	package:network
-send	cli/cli.go	/^func (cli *CommandLine) send(from, to string, amount int, nodeID string, mineNow bool) {$/;"	f	struct:cli.CommandLine
-startNode	cli/cli.go	/^func (cli *CommandLine) startNode(nodeID, minerAddress string) {$/;"	f	struct:cli.CommandLine
+send	cli/new.go	/^func (cli *CommandLine) send(from, to, num string, mineNow bool) {$/;"	f	struct:cli.CommandLine
+startNode	cli/new.go	/^func (cli *CommandLine) startNode(minerAddress string) {$/;"	f	struct:cli.CommandLine
 startServer	network/p2p.go	/^func startServer(chain *blockchain.BlockChain) {$/;"	f	package:network
 utxoPrefix	blockchain/utxs.go	/^	utxoPrefix   = []byte("utxo-")$/;"	v	package:blockchain
-validateArgs	cli/cli.go	/^func (cli *CommandLine) validateArgs() {$/;"	f	struct:cli.CommandLine
 version	network/network.go	/^	version      = 1$/;"	c	package:network
 version	wallet/wallet.go	/^	version     = byte(0x00)$/;"	c	package:wallet
 wallet	wallet/persist.go	/^package wallet$/;"	p

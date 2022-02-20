@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	dbPath      = "./tmp/blocks_%s"
+	DBPath      = "./tmp/blocks_%s"
 	genesisData = "GENESIS"
 )
 
@@ -35,7 +35,7 @@ func InitBlockChain(address, nodeID string) *BlockChain {
 	}
 
 	// open leveldb
-	path := fmt.Sprintf(dbPath, nodeID)
+	path := fmt.Sprintf(DBPath, nodeID)
 	db, err := leveldb.OpenFile(path, nil)
 	HandleErr(err)
 
@@ -157,7 +157,7 @@ func DBexists(path string) bool {
 }
 
 func ContinueBlockChain(nodeID string) *BlockChain {
-	path := fmt.Sprintf(dbPath, nodeID)
+	path := fmt.Sprintf(DBPath, nodeID)
 	if DBexists(path) == false {
 		fmt.Println("No existing blockchain")
 		runtime.Goexit()

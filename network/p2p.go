@@ -8,12 +8,9 @@ import (
 	"log"
 	"net"
 	"os"
-	"runtime"
 	"strings"
-	"syscall"
 	"time"
-
-	death "github.com/vrecan/death/v3" // like signal.h include
+	// like signal.h include
 )
 
 const (
@@ -136,17 +133,10 @@ func searchForPeers(chain *blockchain.BlockChain) {
 	}
 }
 
-func StartP2P(nodeID, minerAddress string) {
+func StartP2P(chain *blockchain.BlockChain, minerAddress string) {
 
 	// set miner address globaly
 	mineAddress = minerAddress
-
-	// load blockchain
-	chain := blockchain.ContinueBlockChain(nodeID)
-	defer chain.Database.Close()
-
-	// catch interrupts/signals
-	go CloseDB(chain)
 
 	// start server in go routine
 	go startServer(chain)
@@ -159,14 +149,4 @@ func StartP2P(nodeID, minerAddress string) {
 
 		time.Sleep(30 * aSecond) // 30 seconds
 	}
-}
-
-func CloseDB(chain *blockchain.BlockChain) {
-	die := death.NewDeath(syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-
-	die.WaitForDeathWithFunc(func() {
-		defer os.Exit(1)
-		defer runtime.Goexit()
-		chain.Database.Close()
-	})
 }
