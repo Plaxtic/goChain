@@ -11,9 +11,17 @@ type BlockChainIterator struct {
 }
 
 func (chain *BlockChain) Iterator() *BlockChainIterator {
-	lastBlock := chain.GetLastBlock()
+	var currHash []byte
+
+	lastBlock, err := chain.GetLastBlock()
+	if err == nil {
+		currHash = lastBlock.Hash
+	} else {
+		currHash = nil
+	}
+
 	iter := &BlockChainIterator{
-		CurrHash: lastBlock.Hash,
+		CurrHash: currHash,
 		Block:    &lastBlock,
 		Database: chain.Database,
 	}

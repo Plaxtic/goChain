@@ -16,7 +16,7 @@ const (
 	protocol     = "tcp"
 	version      = 1
 	commandLen   = 12
-	maxTXPoolSiz = 3
+	maxTXPoolSiz = 2
 )
 
 var (
@@ -188,8 +188,6 @@ func SendData(address string, data []byte) {
 
 	if err != nil {
 		var updatedNodes []string
-		//		fmt.Printf("%s is unavailable\n", address)
-
 		for _, node := range KnownNodes {
 			if node != address {
 				updatedNodes = append(updatedNodes, node)
@@ -230,11 +228,16 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 	block := blockchain.Bytes2Block(blockData)
 	chain.AddBlock(block)
 
+	fmt.Printf("Syncing blocks, %d remaining\r", len(blocksInTransit))
+
 	if len(blocksInTransit) > 0 {
+
 		blockHash := blocksInTransit[0]
 		SendGetData(payload.AddrFrom, "block", blockHash)
 
 		blocksInTransit = blocksInTransit[1:]
+	} else {
+		fmt.Println("\nSynced")
 	}
 	UTXOst := blockchain.UTXOSet{
 		BlockChain: chain,
@@ -288,6 +291,7 @@ func HandleVersionAck(request []byte, chain *blockchain.BlockChain) {
 	HandleErr(dec.Decode(&payload))
 
 	bestHeight := chain.GetBestHeight()
+
 	otherHeight := payload.BestHeight
 
 	// check if peer has longer blockchain
@@ -295,6 +299,7 @@ func HandleVersionAck(request []byte, chain *blockchain.BlockChain) {
 		SendGetBlocks(payload.AddrFrom)
 	}
 	if NodeIsKnown(payload.AddrFrom) == false {
+		fmt.Printf("New peer at: %s\n", payload.AddrFrom)
 		KnownNodes = append(KnownNodes, payload.AddrFrom)
 	}
 }
@@ -320,6 +325,7 @@ func HandleVersion(request []byte, chain *blockchain.BlockChain) {
 
 	// add node to known nodes
 	if NodeIsKnown(payload.AddrFrom) == false {
+		fmt.Printf("New peer at: %s\n", payload.AddrFrom)
 		KnownNodes = append(KnownNodes, payload.AddrFrom)
 	}
 }
@@ -347,7 +353,7 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 	memoryPool[hex.EncodeToString(tx.ID)] = tx
 
 	// mine block if transation pool full and mining on
-	mine := len(mineAddress) > 0 && len(memoryPool) > maxTXPoolSiz
+	mine := len(mineAddress) > 0 && len(memoryPool) >= maxTXPoolSiz
 	if mine {
 		MineTx(chain)
 	}
@@ -377,11 +383,20 @@ func HandleInv(request []byte, chain *blockchain.BlockChain) {
 	switch payload.Type {
 	case "block":
 
-		// refresh blocksInTransit
-		for i, h := range payload.Items {
-			if chain.ContainsBlock(h) {
-				blocksInTransit = payload.Items[:i]
-				break
+		// if no blockchain, get all
+		if _, err := chain.GetLastBlock(); err != nil {
+			blocksInTransit = payload.Items
+		} else {
+
+			// get only new blocks
+			for i, h := range payload.Items {
+				if chain.ContainsBlock(h) {
+					blocksInTransit = payload.Items[:i]
+					break
+				}
+				if i == len(payload.Items)-1 {
+					blocksInTransit = payload.Items
+				}
 			}
 		}
 		if len(blocksInTransit) > 0 {
@@ -420,7 +435,7 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 
 	cmd := Bytes2Cmd(req[:commandLen])
 	req = req[commandLen:]
-	fmt.Printf("Received %s command\n", cmd)
+	//	fmt.Printf("Received %s command\n", cmd)
 
 	switch cmd {
 	case "addr":

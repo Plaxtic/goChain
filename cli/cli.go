@@ -22,14 +22,26 @@ type CommandLine struct {
 
 func (cli *CommandLine) printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("	--balance ADDRESS            - get the balance for an address")
-	fmt.Println("	--createblockchain ADDRESS   - creates a blockchain and sends genesis reward to address")
-	fmt.Println("	--print                      - Prints the blocks in the chain")
-	fmt.Println("	--send FROM TO AMOUNT [mine] - Send amount of coins. Then -mine flag is set, mine off of this node")
-	fmt.Println("	--createwallet               - Creates a new Wallet")
-	fmt.Println("	--listaddresses              - Lists the addresses in our wallet file")
-	fmt.Println("	--reindexutxo                - Rebuilds the UTXO set")
-	fmt.Println("	--startnode [ADDRESS]        - Start a node with ID specified in NODE_ID env. var. -miner enables mining")
+	fmt.Println("	--balance ADDRESS            - Get the balance for ADDRESS")
+	fmt.Println("	--createblockchain ADDRESS   - Create a blockchain and send genesis reward to ADDRESS")
+	fmt.Println("	--print                      - Print all blocks in the chain")
+	fmt.Println("	--send FROM TO AMOUNT [mine] - Send AMOUNT of coins from FROM to TO. Flag mine to mine transation")
+	fmt.Println("	--createwallet               - Create new wallet")
+	fmt.Println("	--listaddresses              - List addresses in wallet file")
+	fmt.Println("	--reindexutxo                - Rebuild the UTXO set")
+	fmt.Println("	--mine ADDRESS               - Start a node with mining enabled for ADDRESS")
+}
+
+func (cli *CommandLine) createBlockChain(address string) {
+	checkAddress(address)
+
+	cli.BlockChain.CreateBlockChain(address, cli.nodeID)
+
+	UTXOst := blockchain.UTXOSet{
+		BlockChain: cli.BlockChain,
+	}
+	UTXOst.Reindex()
+	fmt.Println("Blockchain created")
 }
 
 func (cli *CommandLine) startNode(minerAddress string) {
@@ -143,14 +155,8 @@ func (cli *CommandLine) Run() {
 	}
 	cli.nodeID = nodeID
 
-	// create blockchain if none
-	path := fmt.Sprintf(blockchain.DBPath, nodeID)
-	if !blockchain.DBexists(path) {
-		newWalletAddress := cli.createWallet()
-		cli.BlockChain = blockchain.InitBlockChain(newWalletAddress, nodeID)
-	} else {
-		cli.BlockChain = blockchain.ContinueBlockChain(nodeID)
-	}
+	// get blockchain
+	cli.BlockChain = blockchain.ContinueBlockChain(nodeID)
 
 	// close database safely
 	defer cli.BlockChain.Database.Close()
@@ -163,7 +169,6 @@ func (cli *CommandLine) Run() {
 
 	// handle options
 	switch os.Args[1] {
-
 	case "--reindexutxo":
 		cli.reindexUTXO()
 	case "--print":
@@ -172,17 +177,24 @@ func (cli *CommandLine) Run() {
 		cli.listAddresses()
 	case "--createwallet":
 		cli.createWallet()
+	case "--createblockchain":
+		if len(os.Args) < 3 {
+			cli.printUsage()
+			runtime.Goexit()
+		}
+		cli.createBlockChain(os.Args[2])
 	case "--balance":
 		if len(os.Args) < 3 {
 			cli.printUsage()
 			runtime.Goexit()
 		}
 		cli.getBalance(os.Args[2])
-	case "--startnode":
-		if len(os.Args) > 3 {
-			cli.startNode(os.Args[3])
+	case "--mine":
+		if len(os.Args) < 3 {
+			cli.printUsage()
+			runtime.Goexit()
 		} else {
-			cli.startNode("")
+			cli.startNode(os.Args[2])
 		}
 	case "--send":
 		if len(os.Args) < 5 {
@@ -190,6 +202,8 @@ func (cli *CommandLine) Run() {
 			runtime.Goexit()
 		} else if len(os.Args) < 6 {
 			cli.send(os.Args[2], os.Args[3], os.Args[4], false)
+		} else {
+			cli.send(os.Args[2], os.Args[3], os.Args[4], os.Args[5] == "mine")
 		}
 	default:
 		cli.printUsage()
@@ -208,6 +222,7 @@ func checkAddress(address string) {
 		log.Panic("Invalid address")
 	}
 }
+
 func CloseDB(chain *blockchain.BlockChain) {
 	die := death.NewDeath(syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 

@@ -11,7 +11,11 @@ import (
 	log "github.com/llimllib/loglevel"
 )
 
-const Difficulty = 12
+const (
+	Difficulty          = 12
+	BlockMiningInterval = 10
+	AdjustmentInverval  = 5
+)
 
 type ProofOfWork struct {
 	Block  *Block
@@ -67,7 +71,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return nonce, hash[:]
 }
 
-// not working for excess zeros
+// not working for excess zeros 				<--  (CHANGE)
 func (pow *ProofOfWork) Validate() bool {
 	var intHash big.Int
 	var hash [32]byte

@@ -6,9 +6,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"os"
-	"runtime"
-	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -19,25 +18,17 @@ const (
 )
 
 type BlockChain struct {
-	Mu       sync.Mutex
-	LastHash []byte
 	Database *leveldb.DB
 }
 
 // create and store blockchain
-func InitBlockChain(address, nodeID string) *BlockChain {
-	var lastHash []byte
+func (chain *BlockChain) CreateBlockChain(address, nodeID string) {
 
-	// if exists use ContinueBlockChain
-	if DBexists(nodeID) {
-		fmt.Println("Blockchain exists")
-		runtime.Goexit()
+	// check for existing blockchain
+	_, err := chain.GetLastBlock()
+	if err == nil {
+		log.Panic("Chain already exists")
 	}
-
-	// open leveldb
-	path := fmt.Sprintf(DBPath, nodeID)
-	db, err := leveldb.OpenFile(path, nil)
-	HandleErr(err)
 
 	// mine genesis block
 	cbtx := CoinbaseTx(address, genesisData)
@@ -45,14 +36,7 @@ func InitBlockChain(address, nodeID string) *BlockChain {
 	fmt.Println("Genesis Block minted")
 
 	// create blockchain
-	lastHash = genesis.Hash
-	newBlockchain := BlockChain{
-		LastHash: lastHash,
-		Database: db,
-	}
-	newBlockchain.AddBlock(genesis)
-
-	return &newBlockchain
+	chain.AddBlock(genesis)
 }
 
 func (chain *BlockChain) ContainsBlock(hash []byte) bool {
@@ -76,15 +60,13 @@ func (chain *BlockChain) AddBlock(block *Block) {
 
 	// refernce hash by "lh" (last-hash)
 	HandleErr(chain.Database.Put([]byte("lh"), block.Hash, nil))
-
-	// update head
-	chain.LastHash = block.Hash
 }
 
 func (chain *BlockChain) MineBlock(txs []*Tx) *Block {
 
 	// get latest block height
-	lastBlock := chain.GetLastBlock()
+	lastBlock, err := chain.GetLastBlock()
+	HandleErr(err)
 	lastHeight := lastBlock.Height
 
 	// create new block
@@ -96,25 +78,27 @@ func (chain *BlockChain) MineBlock(txs []*Tx) *Block {
 	return newBlock
 }
 
-func (chain *BlockChain) GetLastBlock() Block {
+func (chain *BlockChain) GetLastBlock() (lastBlock Block, err error) {
 
 	// get last hash by refernce
 	lastHash, err := chain.Database.Get([]byte("lh"), nil)
-	HandleErr(err)
+	if err != nil {
+		return lastBlock, err
+	}
 
 	// get block by hash
-	lastBlock, err := chain.GetBlockByHash(lastHash)
+	lastBlock, err = chain.GetBlockByHash(lastHash)
 	HandleErr(err)
-
-	return lastBlock
+	return lastBlock, nil
 }
 
 func (chain *BlockChain) SelectChain(block *Block) bool {
 
 	// if new block is longer, update chain
-	if block.Height > chain.GetLastBlock().Height {
+	lastBlock, err := chain.GetLastBlock()
+	HandleErr(err)
+	if block.Height > lastBlock.Height {
 		HandleErr(chain.Database.Put([]byte("lh"), block.Hash, nil))
-		chain.LastHash = block.Hash
 		return true
 	}
 	return false
@@ -146,7 +130,12 @@ func (chain *BlockChain) GetHashes() [][]byte {
 }
 
 func (chain *BlockChain) GetBestHeight() int {
-	return chain.GetLastBlock().Height
+	lastBlock, err := chain.GetLastBlock()
+	if err != nil {
+		return 0
+	}
+
+	return lastBlock.Height
 }
 
 func DBexists(path string) bool {
@@ -157,23 +146,16 @@ func DBexists(path string) bool {
 }
 
 func ContinueBlockChain(nodeID string) *BlockChain {
-	path := fmt.Sprintf(DBPath, nodeID)
-	if DBexists(path) == false {
-		fmt.Println("No existing blockchain")
-		runtime.Goexit()
-	}
 
+	// open database
+	path := fmt.Sprintf(DBPath, nodeID)
 	db, err := leveldb.OpenFile(path, nil)
 	HandleErr(err)
 
-	// create blockchain
+	// pass database to structure
 	chain := BlockChain{
-		LastHash: []byte{},
 		Database: db,
 	}
-
-	// get last hash from latest block
-	chain.LastHash = chain.GetLastBlock().Hash
 
 	return &chain
 }
