@@ -36,6 +36,11 @@ type Block struct {
 	Block    []byte
 }
 
+type GetBlock struct {
+	AddrFrom string
+	Idx      int
+}
+
 type GetBlocks struct {
 	AddrFrom string
 }
@@ -59,7 +64,7 @@ type Tx struct {
 
 type Version struct { // remote procedure call (RPC)
 	Version    int
-	BestHeight int // to compare blockchain lengths
+	BestHeight int64 // to compare blockchain lengths
 	AddrFrom   string
 }
 
@@ -228,7 +233,7 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 	block := blockchain.Bytes2Block(blockData)
 	chain.AddBlock(block)
 
-	fmt.Printf("Syncing blocks, %d remaining\r", len(blocksInTransit))
+	fmt.Printf("Syncing blocks, %d remaining\n", len(blocksInTransit))
 
 	if len(blocksInTransit) > 0 {
 
@@ -243,6 +248,15 @@ func HandleBlock(request []byte, chain *blockchain.BlockChain) {
 		BlockChain: chain,
 	}
 	UTXOst.Reindex()
+}
+func HandleGetBlock(request []byte, chain *blockchain.BlockChain) {
+	var buff bytes.Buffer
+	var payload GetBlock
+
+	buff.Write(request)
+	dec := gob.NewDecoder(&buff)
+	HandleErr(dec.Decode(&payload))
+
 }
 
 func HandleGetBlocks(request []byte, chain *blockchain.BlockChain) {
@@ -353,19 +367,21 @@ func HandleTx(request []byte, chain *blockchain.BlockChain) {
 	memoryPool[hex.EncodeToString(tx.ID)] = tx
 
 	// mine block if transation pool full and mining on
-	mine := len(mineAddress) > 0 && len(memoryPool) >= maxTXPoolSiz
-	if mine {
-		MineTx(chain)
-	}
+	/*
+		mine := len(mineAddress) > 0 && len(memoryPool) >= maxTXPoolSiz
+		if mine {
+			MineTx(chain)
+		}
+	*/
 	for _, node := range KnownNodes {
 		if node != nodeAddress && node != payload.AddrFrom {
 
-			// broadcast transaction or new chain
-			if !mine {
-				SendInv(node, "tx", [][]byte{tx.ID})
-			} else {
-				SendVersion(node, chain)
-			}
+			/*
+				// broadcast transaction or new chain
+				if !mine {
+					SendInv(node, "tx", [][]byte{tx.ID})
+				} else { */
+			SendVersion(node, chain)
 		}
 	}
 }
@@ -435,7 +451,7 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 
 	cmd := Bytes2Cmd(req[:commandLen])
 	req = req[commandLen:]
-	//	fmt.Printf("Received %s command\n", cmd)
+	fmt.Printf("Received %s command\n", cmd)
 
 	switch cmd {
 	case "addr":
@@ -459,28 +475,32 @@ func HandleConnection(conn net.Conn, chain *blockchain.BlockChain) {
 	}
 }
 
-func MineTx(chain *blockchain.BlockChain) {
-	var txs []*blockchain.Tx
-
+func EmptyPool(chain *blockchain.BlockChain) (txs []*blockchain.Tx) {
 	for id := range memoryPool {
 		tx := memoryPool[id]
+		delete(memoryPool, id)
 
 		if chain.VerifyTx(&tx) {
 			txs = append(txs, &tx)
 		}
 	}
+	return txs
+}
 
-	if len(txs) == 0 {
-		fmt.Println("All Transactions are invalid")
-		return
-	}
-
-	cbTx := blockchain.CoinbaseTx(mineAddress, "")
-	txs = append(txs, cbTx)
+func MineTx(chain *blockchain.BlockChain) {
 
 	// mine new block
 	fmt.Println("Mining...")
-	newBlock := chain.MineBlock(txs)
+	newBlock := chain.MineBlock([]*blockchain.Tx{})
+
+	// add transactions
+	txs := EmptyPool(chain)
+	cbTx := blockchain.CoinbaseTx(mineAddress, "")
+	txs = append(txs, cbTx)
+	newBlock.Txs = txs
+
+	// add block to chain
+	chain.AddBlock(newBlock)
 
 	// refresh UTXOs
 	UTXOst := blockchain.UTXOSet{

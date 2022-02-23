@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Difficulty          = 12
+	InitialDifficulty   = 15
 	BlockMiningInterval = 10
 	AdjustmentInverval  = 5
 )
@@ -26,7 +26,7 @@ func NewProof(b *Block) *ProofOfWork {
 
 	// left bitshift
 	target := big.NewInt(1)
-	target.Lsh(target, uint(256-Difficulty))
+	target.Lsh(target, uint(256-b.Difficulty))
 
 	pow := &ProofOfWork{b, target}
 
@@ -36,10 +36,13 @@ func NewProof(b *Block) *ProofOfWork {
 func (pow *ProofOfWork) InitData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
-			pow.Block.PrevHash,
-			pow.Block.HashTxs(),
 			ToBytes(int64(nonce)),
-			ToBytes(int64(Difficulty)),
+			ToBytes(pow.Block.Timestamp),
+			ToBytes(int64(pow.Block.Difficulty)),
+			pow.Block.PrevHash,
+			ToBytes(int64(pow.Block.Height)),
+
+			// pow.Block.HashTxs(),
 		},
 		[]byte{},
 	)

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -21,6 +22,34 @@ type BlockChain struct {
 	Database *leveldb.DB
 }
 
+// mint block using proof of work
+func (chain *BlockChain) CreateBlock(txs []*Tx, prevHash []byte, height int64) *Block {
+
+	diff := GetDifficulty(prevHash, height, chain)
+
+	block := &Block{
+		Timestamp:  time.Now().Unix(),
+		Nonce:      0,
+		Difficulty: diff,
+		Hash:       []byte{},
+		PrevHash:   prevHash,
+		Height:     height,
+		Txs:        txs,
+	}
+	pow := NewProof(block)
+	nonce, hash := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
+	return block
+}
+
+// first block in a chain
+func (chain *BlockChain) Genesis(coinbase *Tx) *Block {
+	return chain.CreateBlock([]*Tx{coinbase}, nil, 0)
+}
+
 // create and store blockchain
 func (chain *BlockChain) CreateBlockChain(address, nodeID string) {
 
@@ -32,7 +61,7 @@ func (chain *BlockChain) CreateBlockChain(address, nodeID string) {
 
 	// mine genesis block
 	cbtx := CoinbaseTx(address, genesisData)
-	genesis := Genesis(cbtx)
+	genesis := chain.Genesis(cbtx)
 	fmt.Println("Genesis Block minted")
 
 	// create blockchain
@@ -53,7 +82,7 @@ func (chain *BlockChain) ContainsBlock(hash []byte) bool {
 func (chain *BlockChain) AddBlock(block *Block) {
 
 	// delete previous head
-	HandleErr(chain.Database.Delete([]byte("lh"), nil))
+	chain.Database.Delete([]byte("lh"), nil)
 
 	// reference block by hash
 	HandleErr(chain.Database.Put(block.Hash, block.ToBytes(), nil))
@@ -70,10 +99,7 @@ func (chain *BlockChain) MineBlock(txs []*Tx) *Block {
 	lastHeight := lastBlock.Height
 
 	// create new block
-	newBlock := CreateBlock(txs, lastBlock.Hash, lastHeight+1)
-
-	// add new block to chain
-	chain.AddBlock(newBlock)
+	newBlock := chain.CreateBlock(txs, lastBlock.Hash, lastHeight+1)
 
 	return newBlock
 }
@@ -129,7 +155,7 @@ func (chain *BlockChain) GetHashes() [][]byte {
 	return hashes
 }
 
-func (chain *BlockChain) GetBestHeight() int {
+func (chain *BlockChain) GetBestHeight() int64 {
 	lastBlock, err := chain.GetLastBlock()
 	if err != nil {
 		return 0

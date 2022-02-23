@@ -40,14 +40,13 @@ func NewFileIter(filePath string) FileIter {
 func (it *FileIter) Next() bool {
 
 	// increment scanner
-	it.Scanner.Scan()
-
-	// update line
-	it.Line = it.Scanner.Text()
-	if it.Line == "" {
+	if !it.Scanner.Scan() {
 		it.Fd.Close()
 		return false
 	}
+
+	// update line
+	it.Line = it.Scanner.Text()
 	return true
 }
 
@@ -133,6 +132,12 @@ func searchForPeers(chain *blockchain.BlockChain) {
 	}
 }
 
+func Mine(chain *blockchain.BlockChain) {
+	for {
+		MineTx(chain)
+	}
+}
+
 func StartP2P(chain *blockchain.BlockChain, minerAddress string) {
 
 	// set miner address globaly
@@ -141,6 +146,11 @@ func StartP2P(chain *blockchain.BlockChain, minerAddress string) {
 	// start server in go routine
 	go startServer(chain)
 	time.Sleep(aSecond)
+
+	// start miner
+	if mineAddress != "" {
+		go Mine(chain)
+	}
 
 	// scan for peers intermittently
 	for {

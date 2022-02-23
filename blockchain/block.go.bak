@@ -10,13 +10,12 @@ import (
 )
 
 type Block struct {
-	Hash       []byte
-	Nonce      int
-	Timestamp  int64
-	Difficulty int64
-	PrevHash   []byte
-	Height     int64
-	Txs        []*Tx
+	Timestamp int64
+	Nonce     int
+	Hash      []byte
+	PrevHash  []byte
+	Height    int
+	Txs       []*Tx
 }
 
 func (block *Block) HashTxs() []byte {
@@ -33,26 +32,28 @@ func (block *Block) HashTxs() []byte {
 	return tree.RootNode.Data
 }
 
-func GetDifficulty(prevHash []byte, height int64, chain *BlockChain) int64 {
-
-	// if no previous block,
-	if prevHash == nil {
-		return InitialDifficulty
+// mint block using proof of work
+func CreateBlock(txs []*Tx, prevHash []byte, height int) *Block {
+	block := &Block{
+		Timestamp: time.Now().Unix(),
+		Nonce:     0,
+		Hash:      []byte{},
+		PrevHash:  prevHash,
+		Height:    height,
+		Txs:       txs,
 	}
-	prevBlock, err := chain.GetBlockByHash(prevHash)
-	HandleErr(err)
+	pow := NewProof(block)
+	nonce, hash := pow.Run()
 
-	timeDiff := time.Now().Unix() - prevBlock.Timestamp
-	if height%AdjustmentInverval == 0 {
-		if timeDiff > BlockMiningInterval*2 {
-			return prevBlock.Difficulty - 1
-		} else if timeDiff < BlockMiningInterval/2 {
-			if prevBlock.Difficulty != 0 {
-				return prevBlock.Difficulty + 1
-			}
-		}
-	}
-	return prevBlock.Difficulty
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
+	return block
+}
+
+// first block in a chain
+func Genesis(coinbase *Tx) *Block {
+	return CreateBlock([]*Tx{coinbase}, []byte{}, 0)
 }
 
 func (b *Block) ToBytes() []byte {
@@ -87,7 +88,6 @@ func (block *Block) PrintBlock() {
 	fmt.Printf("Block Header\n")
 	fmt.Printf("\t|-Timestamp        : %v\n", time.Unix(block.Timestamp, 0))
 	fmt.Printf("\t|-Nonce            : %#x\n", block.Nonce)
-	fmt.Printf("\t|-Difficulty       : %d\n", block.Difficulty)
 	fmt.Printf("\t|-Hash             : %x\n", block.Hash)
 	fmt.Printf("\t|-PrevHash         : %x\n", block.PrevHash)
 	fmt.Printf("\t|-Height           : %d\n", block.Height)
